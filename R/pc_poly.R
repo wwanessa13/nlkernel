@@ -91,9 +91,9 @@ pca_polynomial <- function(SNPs, y,
 
     nPC <- sum(var_explained > var_threshold)
 
-    if (nPC == 0) {
-      nPC <- 1
-      warning("No PC met the variance threshold. Using nPC = 1.")
+    if (nPC < 2) {
+      warning(paste("Sigma", s, "selected fewer than 2 PCs. Skipping this sigma."))
+      next
     }
 
     cat("Number of PCs selected:", nPC, "\n")
