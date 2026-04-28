@@ -87,8 +87,7 @@ pca_gaussian <- function(SNPs, y,
     cat("Number of PCs selected:", nPC, "\n")
 
     kpca_model <- kpca(
-      ~ .,
-      data = as.data.frame(SNPs),
+      x = SNPs,
       kernel = "laplacedot",
       kpar = list(sigma = s),
       features = nPC

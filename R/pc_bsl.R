@@ -99,8 +99,7 @@ pca_bessel <- function(SNPs, y,
     cat("Number of PCs selected:", nPC, "\n")
 
     kpca_model <- kpca(
-      ~ .,
-      data = as.data.frame(SNPs),
+      x = SNPs,
       kernel = "besseldot",
       kpar = list(sigma = s, order = o, degree = d),
       features = nPC

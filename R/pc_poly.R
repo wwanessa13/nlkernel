@@ -99,8 +99,7 @@ pca_polynomial <- function(SNPs, y,
     cat("Number of PCs selected:", nPC, "\n")
 
     kpca_model <- kpca(
-      ~ .,
-      data = as.data.frame(SNPs),
+      x = SNPs,
       kernel = "polydot",
       kpar = list(degree = d, scale = s, offset = o),
       features = nPC
