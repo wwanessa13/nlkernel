@@ -1,3 +1,34 @@
+#' Kernel PCA with Polynomial Kernel for Genomic Prediction
+#'
+#' This function fits kernel PCA models using a polynomial kernel for genomic
+#' prediction. It evaluates different combinations of degree, scale, and offset
+#' parameters. Principal components are selected according to a variance-explained
+#' threshold, and a kernel matrix is constructed from the selected component
+#' scores. Predictive accuracy is evaluated using k-fold cross-validation with
+#' the RKHS framework implemented in the BGLR package.
+#'
+#' @param SNPs A numeric matrix of SNP genotypes, with individuals in rows and markers in columns.
+#' @param y A numeric vector of phenotypic values corresponding to the individuals.
+#' @param degree_vals A numeric vector of degree values for the polynomial kernel. Default is c(2, 3).
+#' @param scale_vals A numeric vector of scale values for the polynomial kernel. Default is c(0.1, 1).
+#' @param offset_vals A numeric vector of offset values for the polynomial kernel. Default is c(0, 1).
+#' @param var_threshold Minimum proportion of variance explained required for a principal component to be retained. Default is 0.01.
+#' @param n_folds Number of folds for cross-validation. Default is 5.
+#' @param nIter Total number of iterations for the BGLR model. Default is 10000.
+#' @param burnIn Number of burn-in iterations for the BGLR model. Default is 5000.
+#' @param thin Thinning interval for the BGLR model. Default is 10.
+#' @param seed Random seed for fold assignment. Default is 123.
+#' @param save_xlsx A logical value indicating whether to save results in an Excel file. Default is TRUE.
+#' @param file_name Character string specifying the name of the Excel file. Default is "pca_polynomial.xlsx".
+#'
+#' @return A list with:
+#' \describe{
+#'   \item{results}{A data frame with the mean and standard deviation of predictive accuracy for each combination of polynomial kernel parameters.}
+#'   \item{predictions}{A data frame with observed and predicted values for each fold and parameter combination.}
+#' }
+#'
+#' @export
+
 pca_polynomial <- function(SNPs, y,
                            degree_vals = c(2, 3),
                            scale_vals = c(0.1, 1),

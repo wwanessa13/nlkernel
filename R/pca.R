@@ -1,3 +1,31 @@
+#' PCA-Based Kernel for Genomic Prediction
+#'
+#' This function fits a PCA-based kernel model for genomic prediction using the
+#' RKHS framework implemented in the BGLR package. Principal components are
+#' selected according to a variance-explained threshold, and a genomic kernel is
+#' constructed from the selected component scores. Predictive accuracy is
+#' evaluated using k-fold cross-validation.
+#'
+#' @param SNPs A numeric matrix of SNP genotypes, with individuals in rows and markers in columns.
+#' @param y A numeric vector of phenotypic values corresponding to the individuals.
+#' @param var_threshold Minimum proportion of variance explained required for a principal component to be retained. Default is 0.01.
+#' @param n_folds Number of folds for cross-validation. Default is 5.
+#' @param nIter Total number of iterations for the BGLR model. Default is 10000.
+#' @param burnIn Number of burn-in iterations for the BGLR model. Default is 5000.
+#' @param thin Thinning interval for the BGLR model. Default is 10.
+#' @param seed Random seed for fold assignment. Default is 123.
+#' @param save_xlsx A logical value indicating whether to save results in an Excel file. Default is TRUE.
+#' @param file_name Character string specifying the name of the Excel file. Default is "pca.xlsx".
+#'
+#' @return A list with:
+#' \describe{
+#'   \item{results}{A data frame with the mean and standard deviation of predictive accuracy.}
+#'   \item{predictions}{A data frame with observed and predicted values for each fold.}
+#'   \item{folds}{A numeric vector indicating the fold assignment for each individual.}
+#' }
+#'
+#' @export
+
 pca <- function(SNPs, y,
                 var_threshold = 0.01,
                 n_folds = 5,

@@ -1,3 +1,30 @@
+#' GBLUP for Genomic Prediction
+#'
+#' This function fits a Genomic Best Linear Unbiased Prediction (GBLUP) model
+#' using a genomic relationship matrix computed by the VanRaden method. The model
+#' is fitted through the RKHS framework implemented in the BGLR package, and
+#' predictive accuracy is evaluated using k-fold cross-validation.
+#'
+#' @param SNPs A numeric matrix of SNP genotypes, with individuals in rows and markers in columns.
+#' @param y A numeric vector of phenotypic values corresponding to the individuals.
+#' @param ploidy Ploidy level used to compute the genomic relationship matrix. Default is 2.
+#' @param n_folds Number of folds for cross-validation. Default is 5.
+#' @param nIter Total number of iterations for the BGLR model. Default is 10000.
+#' @param burnIn Number of burn-in iterations for the BGLR model. Default is 5000.
+#' @param thin Thinning interval for the BGLR model. Default is 10.
+#' @param seed Random seed for fold assignment. Default is 123.
+#' @param save_xlsx A logical value indicating whether to save results in an Excel file. Default is TRUE.
+#' @param file_name Character string specifying the name of the Excel file. Default is "gblup.xlsx".
+#'
+#' @return A list with:
+#' \describe{
+#'   \item{results}{A data frame with the mean and standard deviation of predictive accuracy.}
+#'   \item{predictions}{A data frame with observed and predicted values for each fold.}
+#'   \item{folds}{A numeric vector indicating the fold assignment for each individual.}
+#' }
+#'
+#' @export
+
 gblup <- function(SNPs, y,
                   ploidy = 2,
                   n_folds = 5,

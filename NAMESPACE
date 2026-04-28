@@ -2,5 +2,12 @@
 
 export(bessel)
 export(gaussian)
+export(gblup)
+export(kernels_comb)
 export(laplacian)
+export(pca)
+export(pca_bessel)
+export(pca_gaussian)
+export(pca_laplacian)
+export(pca_polynomial)
 export(polynomial)

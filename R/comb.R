@@ -1,3 +1,36 @@
+#' Combined Kernel Models for Genomic Prediction
+#'
+#' This function fits combined kernel models for genomic prediction using the
+#' RKHS framework implemented in the BGLR package. It evaluates pairwise
+#' combinations of nonlinear kernels and GBLUP through k-fold cross-validation.
+#'
+#' @param SNPs A numeric matrix of SNP genotypes, with individuals in rows and markers in columns.
+#' @param y A numeric vector of phenotypic values corresponding to the individuals.
+#' @param poly_degree Degree parameter for the polynomial kernel. Default is 2.
+#' @param poly_scale Scale parameter for the polynomial kernel. Default is 2.
+#' @param poly_offset Offset parameter for the polynomial kernel. Default is 2.
+#' @param lpc_sigma Sigma parameter for the Laplacian kernel. Default is 0.01.
+#' @param bsl_sigma Sigma parameter for the Bessel kernel. Default is 0.1.
+#' @param bsl_order Order parameter for the Bessel kernel. Default is 1.
+#' @param bsl_degree Degree parameter for the Bessel kernel. Default is 2.
+#' @param rbf_sigma Sigma parameter for the Gaussian/RBF kernel. Default is 0.001.
+#' @param n_folds Number of folds for cross-validation. Default is 5.
+#' @param nIter Total number of iterations for the BGLR model. Default is 10000.
+#' @param burnIn Number of burn-in iterations for the BGLR model. Default is 4000.
+#' @param thin Thinning interval for the BGLR model. Default is 10.
+#' @param seed Random seed for fold assignment. Default is 123.
+#' @param save_xlsx A logical value indicating whether to save results in an Excel file. Default is TRUE.
+#' @param file_name Character string specifying the name of the Excel file. Default is "comb.xlsx".
+#'
+#' @return A list with:
+#' \describe{
+#'   \item{results}{A data frame with the mean and standard deviation of predictive accuracy for each kernel combination.}
+#'   \item{predictions}{A list of data frames with observed and predicted values for each fold and kernel combination.}
+#'   \item{folds}{A numeric vector indicating the fold assignment for each individual.}
+#' }
+#'
+#' @export
+
 kernels_comb <- function(SNPs, y,
                          poly_degree = 2,
                          poly_scale = 2,
