@@ -1,3 +1,27 @@
+#' @title Bessel Kernel for Genomic Prediction
+#' @description This function implements the Bessel kernel for genomic prediction using the BGLR package. It performs cross-validation to evaluate the predictive accuracy of the model.
+#' @param SNPs A matrix of SNP genotypes (individuals x markers).
+#' @param y A numeric vector of phenotypic values corresponding to the individuals.
+#' @param sg A numeric vector of sigma values for the Bessel kernel. Default is 0.1, 0.5 and 1.
+#' @param ord A numeric vector of order values for the Bessel kernel. Default is 0, 1 and 2.
+#' @param dg A numeric vector of degree values for the Bessel kernel. Default is 1, 2 and 3.
+#' @param n_folds The number of folds for cross-validation. Default is 5.
+#' @param nIter The total number of iterations for the BGLR model. Default is 10000.
+#' @param burnIn The number of burn-in iterations for the BGLR model. Default is 4000.
+#' @param thin The thinning interval for the BGLR model. Default is 10.
+#' @param seed A numeric value for setting the random seed. Default is 123.
+#' @param save_xlsx A logical value indicating whether to save results in an Excel file. Default is TRUE.
+#' @param file_name Character string specifying the name of the Excel file.
+#'
+#' @return A list with:
+#' \describe{
+#'   \item{results}{A data frame with the mean and standard deviation of predictive accuracy for each sigma value.}
+#'   \item{predictions}{A list of data frames with observed and predicted values for each fold and sigma value.}
+#'   \item{folds}{A numeric vector indicating the fold assignment for each individual.}
+#' }
+#'
+#' @export
+
 bessel <- function(SNPs, y,
                    sg = c(0.1, 0.5, 1),
                    ord = c(0, 1, 2),

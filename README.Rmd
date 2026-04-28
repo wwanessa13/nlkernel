@@ -1,0 +1,39 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+# nlkernel
+
+<!-- badges: start -->
+<!-- badges: end -->
+
+This package provides a unified framework for genomic prediction using kernel-based methods within the RKHS paradigm implemented in BGLR. It includes functions for fitting and evaluating Gaussian, Bessel, Laplace, Polynomial, and GBLUP models, as well as dimensionality reduction approaches such as PCA and kernel PCA (KPCA). The package supports flexible hyperparameter tuning, automatic selection of principal components based on explained variance thresholds, and k-fold cross-validation for robust model assessment. It also allows combining multiple kernels in a single model. Results are returned in a structured format with prediction outputs and can be optionally exported for downstream analysis.
+
+## Installation
+
+Package installation can be done directly by calling `devtools::install_github("wwanessa13/nlkernel")`.
+
+## Example
+
+```{r example, eval=FALSE}
+library(nlkernel)
+
+SNPs <- as.matrix(read.table("gen.txt"))
+
+y <- read.table("phenotypes.txt") %>% pull(yield)
+
+model <- laplacian(SNPs = SNPs, y = y)
+model$results
+```
+
