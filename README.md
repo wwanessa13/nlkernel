@@ -22,7 +22,7 @@ downstream analysis.
 ## Installation
 
 Package installation can be done directly by calling
-`devtools::install_github("wwanessa13/nlkernel")`.
+`pak::pak("wwanessa13/nlkernel")`.
 
 ## Example
 
@@ -33,6 +33,6 @@ SNPs <- as.matrix(read.table("gen.txt"))
 
 y <- read.table("phenotypes.txt") %>% pull(yield)
 
-results <- laplacian(SNPs = SNPs, y = y)
-print(results)
+model <- laplacian(SNPs = SNPs, y = y)
+model$results
 ```

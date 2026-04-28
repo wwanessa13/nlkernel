@@ -22,7 +22,7 @@ This package provides a unified framework for genomic prediction using kernel-ba
 
 ## Installation
 
-Package installation can be done directly by calling `devtools::install_github("wwanessa13/nlkernel")`.
+Package installation can be done directly by calling `pak::pak("wwanessa13/nlkernel")`.
 
 ## Example
 

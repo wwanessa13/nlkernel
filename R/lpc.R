@@ -25,16 +25,6 @@
 #' @export
 
 laplacian <- function(SNPs, y,
-                      sg = c(0.1, 0.05, 0.01, 0.001),
-                      n_folds = 5,
-                      nIter = 10000,
-                      burnIn = 4000,
-                      thin = 10,
-                      seed = 123,
-                      save_xlsx = TRUE,
-                      file_name = "laplacian.xlsx") {
-
-laplacian <- function(SNPs, y,
                      sg = c(0.1, 0.05, 0.01, 0.001),
                      n_folds = 5,
                      nIter = 10000,
