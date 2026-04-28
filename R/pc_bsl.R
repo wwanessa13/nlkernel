@@ -48,6 +48,7 @@ pca_bessel <- function(SNPs, y,
   library(writexl)
 
   SNPs <- as.matrix(SNPs)
+  storage.mode(SNPs) <- "numeric"
   y <- as.numeric(y)
 
   n <- length(y)
@@ -62,25 +63,25 @@ pca_bessel <- function(SNPs, y,
     sigma  = sigma_vals
   )
 
+  set.seed(seed)
+  folds <- sample(rep(1:n_folds, length.out = n))
+
   results_list <- list()
   predictions_list <- list()
   counter <- 1
 
-  for (i in 1:nrow(grid)) {
+  for (i in seq_len(nrow(grid))) {
 
     s <- grid$sigma[i]
     o <- grid$order[i]
     d <- grid$degree[i]
 
-    cat("\n====================================\n")
-    cat("Sigma =", s,
+    cat("Running Sigma =", s,
         "| Order =", o,
         "| Degree =", d, "\n")
-    cat("====================================\n")
 
     kpca_temp <- kpca(
-      ~ .,
-      data = as.data.frame(SNPs),
+      x = SNPs,
       kernel = "besseldot",
       kpar = list(sigma = s, order = o, degree = d),
       features = 0
@@ -92,7 +93,12 @@ pca_bessel <- function(SNPs, y,
     nPC <- sum(var_explained > var_threshold)
 
     if (nPC < 2) {
-      warning(paste("Sigma", s, "selected fewer than 2 PCs. Skipping this sigma."))
+      warning(
+        paste(
+          "Sigma", s, "Order", o, "Degree", d,
+          "selected fewer than 2 PCs. Skipping."
+        )
+      )
       next
     }
 
@@ -105,18 +111,15 @@ pca_bessel <- function(SNPs, y,
       features = nPC
     )
 
-    embedding <- predict(kpca_model, as.data.frame(SNPs))
+    embedding <- predict(kpca_model, SNPs)
     embedding <- as.matrix(embedding)
 
     Kmat <- tcrossprod(embedding) / ncol(embedding)
 
-    set.seed(seed)
-    folds <- sample(rep(1:n_folds, length.out = n))
-
     acc_folds <- numeric(n_folds)
     fold_predictions <- list()
 
-    for (f in 1:n_folds) {
+    for (f in seq_len(n_folds)) {
 
       cat("  Processing Fold", f, "\n")
 

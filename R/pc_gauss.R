@@ -67,8 +67,7 @@ pca_gaussian <- function(SNPs, y,
     cat("====================================\n")
 
     kpca_temp <- kpca(
-      ~ .,
-      data = as.data.frame(SNPs),
+      x = SNPs,
       kernel = "rbfdot",
       kpar = list(sigma = s),
       features = 0

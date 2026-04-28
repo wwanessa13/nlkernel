@@ -25,11 +25,11 @@ pca_polynomial(
 
 \item{y}{A numeric vector of phenotypic values corresponding to the individuals.}
 
-\item{degree_vals}{A numeric vector of degree values for the polynomial kernel. Default is c(2, 3).}
+\item{degree_vals}{A numeric vector of degree values for the Polynomial kernel. Default is 2 and 3.}
 
-\item{scale_vals}{A numeric vector of scale values for the polynomial kernel. Default is c(0.1, 1).}
+\item{scale_vals}{A numeric vector of sigma values for the Polynomial kernel. Default is 0.1 and 1.}
 
-\item{offset_vals}{A numeric vector of offset values for the polynomial kernel. Default is c(0, 1).}
+\item{offset_vals}{A numeric vector of order values for the Polynomial kernel. Default is 0 and 1.}
 
 \item{var_threshold}{Minimum proportion of variance explained required for a principal component to be retained. Default is 0.01.}
 
@@ -37,7 +37,7 @@ pca_polynomial(
 
 \item{nIter}{Total number of iterations for the BGLR model. Default is 10000.}
 
-\item{burnIn}{Number of burn-in iterations for the BGLR model. Default is 5000.}
+\item{burnIn}{Number of burn-in iterations for the BGLR model. Default is 4000.}
 
 \item{thin}{Thinning interval for the BGLR model. Default is 10.}
 
@@ -45,18 +45,18 @@ pca_polynomial(
 
 \item{save_xlsx}{A logical value indicating whether to save results in an Excel file. Default is TRUE.}
 
-\item{file_name}{Character string specifying the name of the Excel file. Default is "pca_polynomial.xlsx".}
+\item{file_name}{Character string specifying the name of the Excel file. Default is "pca_bessel.xlsx".}
 }
 \value{
 A list with:
 \describe{
-\item{results}{A data frame with the mean and standard deviation of predictive accuracy for each combination of polynomial kernel parameters.}
+\item{results}{A data frame with the mean and standard deviation of predictive accuracy for each combination of Polynomial kernel parameters.}
 \item{predictions}{A data frame with observed and predicted values for each fold and parameter combination.}
 }
 }
 \description{
-This function fits kernel PCA models using a polynomial kernel for genomic
-prediction. It evaluates different combinations of degree, scale, and offset
+This function fits kernel PCA models using a Polynomial kernel for genomic
+prediction. It evaluates different combinations of sigma, order, and degree
 parameters. Principal components are selected according to a variance-explained
 threshold, and a kernel matrix is constructed from the selected component
 scores. Predictive accuracy is evaluated using k-fold cross-validation with

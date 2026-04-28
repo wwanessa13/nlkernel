@@ -1,7 +1,7 @@
 #' Kernel PCA with Polynomial Kernel for Genomic Prediction
 #'
-#' This function fits kernel PCA models using a polynomial kernel for genomic
-#' prediction. It evaluates different combinations of degree, scale, and offset
+#' This function fits kernel PCA models using a Polynomial kernel for genomic
+#' prediction. It evaluates different combinations of sigma, order, and degree
 #' parameters. Principal components are selected according to a variance-explained
 #' threshold, and a kernel matrix is constructed from the selected component
 #' scores. Predictive accuracy is evaluated using k-fold cross-validation with
@@ -9,21 +9,21 @@
 #'
 #' @param SNPs A numeric matrix of SNP genotypes, with individuals in rows and markers in columns.
 #' @param y A numeric vector of phenotypic values corresponding to the individuals.
-#' @param degree_vals A numeric vector of degree values for the polynomial kernel. Default is c(2, 3).
-#' @param scale_vals A numeric vector of scale values for the polynomial kernel. Default is c(0.1, 1).
-#' @param offset_vals A numeric vector of offset values for the polynomial kernel. Default is c(0, 1).
+#' @param scale_vals A numeric vector of sigma values for the Polynomial kernel. Default is 0.1 and 1.
+#' @param offset_vals A numeric vector of order values for the Polynomial kernel. Default is 0 and 1.
+#' @param degree_vals A numeric vector of degree values for the Polynomial kernel. Default is 2 and 3.
 #' @param var_threshold Minimum proportion of variance explained required for a principal component to be retained. Default is 0.01.
 #' @param n_folds Number of folds for cross-validation. Default is 5.
 #' @param nIter Total number of iterations for the BGLR model. Default is 10000.
-#' @param burnIn Number of burn-in iterations for the BGLR model. Default is 5000.
+#' @param burnIn Number of burn-in iterations for the BGLR model. Default is 4000.
 #' @param thin Thinning interval for the BGLR model. Default is 10.
 #' @param seed Random seed for fold assignment. Default is 123.
 #' @param save_xlsx A logical value indicating whether to save results in an Excel file. Default is TRUE.
-#' @param file_name Character string specifying the name of the Excel file. Default is "pca_polynomial.xlsx".
+#' @param file_name Character string specifying the name of the Excel file. Default is "pca_bessel.xlsx".
 #'
 #' @return A list with:
 #' \describe{
-#'   \item{results}{A data frame with the mean and standard deviation of predictive accuracy for each combination of polynomial kernel parameters.}
+#'   \item{results}{A data frame with the mean and standard deviation of predictive accuracy for each combination of Polynomial kernel parameters.}
 #'   \item{predictions}{A data frame with observed and predicted values for each fold and parameter combination.}
 #' }
 #'
@@ -48,6 +48,7 @@ pca_polynomial <- function(SNPs, y,
   library(writexl)
 
   SNPs <- as.matrix(SNPs)
+  storage.mode(SNPs) <- "numeric"
   y <- as.numeric(y)
 
   n <- length(y)
@@ -62,25 +63,25 @@ pca_polynomial <- function(SNPs, y,
     offset = offset_vals
   )
 
+  set.seed(seed)
+  folds <- sample(rep(1:n_folds, length.out = n))
+
   results_list <- list()
   predictions_list <- list()
   counter <- 1
 
-  for (i in 1:nrow(grid)) {
+  for (i in seq_len(nrow(grid))) {
 
     d <- grid$degree[i]
     s <- grid$scale[i]
     o <- grid$offset[i]
 
-    cat("\n====================================\n")
-    cat("Degree =", d,
+    cat("Running Degree =", d,
         "| Scale =", s,
         "| Offset =", o, "\n")
-    cat("====================================\n")
 
     kpca_temp <- kpca(
-      ~ .,
-      data = as.data.frame(SNPs),
+      x = SNPs,
       kernel = "polydot",
       kpar = list(degree = d, scale = s, offset = o),
       features = 0
@@ -92,7 +93,8 @@ pca_polynomial <- function(SNPs, y,
     nPC <- sum(var_explained > var_threshold)
 
     if (nPC < 2) {
-      warning(paste("Sigma", s, "selected fewer than 2 PCs. Skipping this sigma."))
+      warning(paste("Degree", d, "Scale", s, "Offset", o,
+                    "selected fewer than 2 PCs. Skipping."))
       next
     }
 
@@ -105,18 +107,15 @@ pca_polynomial <- function(SNPs, y,
       features = nPC
     )
 
-    embedding <- predict(kpca_model, as.data.frame(SNPs))
+    embedding <- predict(kpca_model, SNPs)
     embedding <- as.matrix(embedding)
 
     Kmat <- tcrossprod(embedding) / ncol(embedding)
 
-    set.seed(seed)
-    folds <- sample(rep(1:n_folds, length.out = n))
-
     acc_folds <- numeric(n_folds)
     fold_predictions <- list()
 
-    for (f in 1:n_folds) {
+    for (f in seq_len(n_folds)) {
 
       cat("  Processing Fold", f, "\n")
 
