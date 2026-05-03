@@ -55,55 +55,54 @@ kernels_comb <- function(SNPs, y,
   library(writexl)
 
   SNPs <- as.matrix(SNPs)
-  X <- t(SNPs)
   y <- as.numeric(y)
 
   n <- length(y)
 
-  if (nrow(X) != n) {
+  if (nrow(SNPs) != n) {
     stop("Number of rows in SNPs must match length of y.")
   }
 
   kernels <- list(
-    poly = function(X) {
+    poly = function(SNPs) {
       kernelMatrix(
         polydot(
           degree = poly_degree,
           scale = poly_scale,
           offset = poly_offset
         ),
-        X
+        SNPs
       )
     },
 
-    lpc = function(X) {
+    lpc = function(SNPs) {
       kernelMatrix(
         laplacedot(sigma = lpc_sigma),
-        X
+        SNPs
       )
     },
 
-    bsl = function(X) {
+    bsl = function(SNPs) {
       kernelMatrix(
         besseldot(
           sigma = bsl_sigma,
           order = bsl_order,
           degree = bsl_degree
         ),
-        X
+        SNPs
       )
     },
 
-    rbf = function(X) {
+    rbf = function(SNPs) {
       kernelMatrix(
         rbfdot(sigma = rbf_sigma),
-        X
+        SNPs
       )
     },
 
-    GBLUP = function(X) {
+    GBLUP = function(SNPs) {
       Gmatrix(
-        X,
+        SNPs,
         method = "VanRaden",
         ploidy = 2
       )
@@ -142,7 +141,7 @@ kernels_comb <- function(SNPs, y,
     acc_folds <- numeric(n_folds)
     fold_predictions <- list()
 
-    K_list <- lapply(comb, function(k) kernels[[k]](X))
+    K_list <- lapply(comb, function(k) kernels[[k]](SNPs))
 
     for (f in 1:n_folds) {
 
