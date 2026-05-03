@@ -12,7 +12,6 @@ gaussian(
   nIter = 10000,
   burnIn = 4000,
   thin = 10,
-  seed = 123,
   save_xlsx = TRUE,
   file_name = "gaussian.xlsx"
 )
@@ -31,8 +30,6 @@ gaussian(
 \item{burnIn}{The number of burn-in iterations for the BGLR model. Default is 4000.}
 
 \item{thin}{The thinning interval for the BGLR model. Default is 10.}
-
-\item{seed}{A numeric value for setting the random seed. Default is 123.}
 
 \item{save_xlsx}{A logical value indicating whether to save results in an Excel file. Default is TRUE.}
 

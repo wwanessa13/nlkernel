@@ -12,7 +12,6 @@ gblup(
   nIter = 10000,
   burnIn = 5000,
   thin = 10,
-  seed = 123,
   save_xlsx = TRUE,
   file_name = "gblup.xlsx"
 )
@@ -31,8 +30,6 @@ gblup(
 \item{burnIn}{Number of burn-in iterations for the BGLR model. Default is 5000.}
 
 \item{thin}{Thinning interval for the BGLR model. Default is 10.}
-
-\item{seed}{Random seed for fold assignment. Default is 123.}
 
 \item{save_xlsx}{A logical value indicating whether to save results in an Excel file. Default is TRUE.}
 

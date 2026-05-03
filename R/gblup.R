@@ -12,7 +12,6 @@
 #' @param nIter Total number of iterations for the BGLR model. Default is 10000.
 #' @param burnIn Number of burn-in iterations for the BGLR model. Default is 5000.
 #' @param thin Thinning interval for the BGLR model. Default is 10.
-#' @param seed Random seed for fold assignment. Default is 123.
 #' @param save_xlsx A logical value indicating whether to save results in an Excel file. Default is TRUE.
 #' @param file_name Character string specifying the name of the Excel file. Default is "gblup.xlsx".
 #'
@@ -31,7 +30,6 @@ gblup <- function(SNPs, y,
                   nIter = 10000,
                   burnIn = 5000,
                   thin = 10,
-                  seed = 123,
                   save_xlsx = TRUE,
                   file_name = "gblup.xlsx") {
 
@@ -56,7 +54,7 @@ gblup <- function(SNPs, y,
     maf = 0.05
   )
 
-  set.seed(seed)
+  set.seed(123)
   folds <- sample(rep(1:n_folds, length.out = n))
 
   acc_folds <- numeric(n_folds)

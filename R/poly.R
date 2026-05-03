@@ -9,7 +9,6 @@
 #' @param nIter The total number of iterations for the BGLR model. Default is 10000.
 #' @param burnIn The number of burn-in iterations for the BGLR model. Default is 4000.
 #' @param thin The thinning interval for the BGLR model. Default is 10.
-#' @param seed A numeric value for setting the random seed. Default is 123.
 #' @param save_xlsx A logical value indicating whether to save results in an Excel file. Default is TRUE.
 #' @param file_name Character string specifying the name of the Excel file.
 #'
@@ -30,7 +29,6 @@ polynomial <- function(SNPs, y,
                        nIter = 10000,
                        burnIn = 4000,
                        thin = 10,
-                       seed = 123,
                        save_xlsx = TRUE,
                        file_name = "polynomial.xlsx") {
 
@@ -48,7 +46,7 @@ polynomial <- function(SNPs, y,
     stop("Number of rows in SNPs must match the length of y.")
   }
 
-  set.seed(seed)
+  set.seed(123)
   folds <- sample(rep(1:n_folds, length.out = n))
 
   results <- data.frame()
