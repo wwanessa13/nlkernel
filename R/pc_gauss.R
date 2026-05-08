@@ -85,12 +85,12 @@ pca_gaussian <- function(SNPs, y,
 
     kpca_model <- kpca(
       x = SNPs,
-      kernel = "laplacedot",
+      kernel = "rbfdot",
       kpar = list(sigma = s),
       features = nPC
     )
 
-    embedding <- predict(kpca_model, as.data.frame(SNPs))
+    embedding <- kpca_model@rotated
     embedding <- as.matrix(embedding)
 
     Kmat <- tcrossprod(embedding) / ncol(embedding)
@@ -155,11 +155,5 @@ pca_gaussian <- function(SNPs, y,
     write_xlsx(results, file_name)
   }
 
-  return(
-    list(
-      results = results,
-      predictions = predictions,
-      folds = folds
-    )
-  )
+  return(results)
 }

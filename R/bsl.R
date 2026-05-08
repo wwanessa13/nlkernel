@@ -4,7 +4,7 @@
 #' @param y A numeric vector of phenotypic values corresponding to the individuals.
 #' @param sg A numeric vector of sigma values for the Bessel kernel. Default is 0.1, 0.5 and 1.
 #' @param ord A numeric vector of order values for the Bessel kernel. Default is 0, 1 and 2.
-#' @param dg A numeric vector of degree values for the Bessel kernel. Default is 1, 2 and 3.
+#' @param dg A numeric vector of degree values for the Bessel kernel. Default is 2 and 3.
 #' @param n_folds The number of folds for cross-validation. Default is 5.
 #' @param nIter The total number of iterations for the BGLR model. Default is 10000.
 #' @param burnIn The number of burn-in iterations for the BGLR model. Default is 4000.
@@ -24,7 +24,7 @@
 bessel <- function(SNPs, y,
                    sg = c(0.1, 0.5, 1),
                    ord = c(0, 1, 2),
-                   dg = c(1, 2, 3),
+                   dg = c(2, 3),
                    n_folds = 5,
                    nIter = 10000,
                    burnIn = 4000,
@@ -32,10 +32,6 @@ bessel <- function(SNPs, y,
                    save_xlsx = TRUE,
                    file_name = "bessel.xlsx") {
 
-  library(BGLR)
-  library(kernlab)
-  library(dplyr)
-  library(writexl)
 
   SNPs <- as.matrix(SNPs)
   y <- as.numeric(y)
@@ -138,11 +134,5 @@ bessel <- function(SNPs, y,
     write_xlsx(results, file_name)
   }
 
-  return(
-    list(
-      results = results,
-      predictions = predictions,
-      folds = folds
-    )
-  )
+  return(results)
 }

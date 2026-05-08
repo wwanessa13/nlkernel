@@ -10,7 +10,7 @@ gblup(
   ploidy = 2,
   n_folds = 5,
   nIter = 10000,
-  burnIn = 5000,
+  burnIn = 4000,
   thin = 10,
   save_xlsx = TRUE,
   file_name = "gblup.xlsx"
@@ -27,7 +27,7 @@ gblup(
 
 \item{nIter}{Total number of iterations for the BGLR model. Default is 10000.}
 
-\item{burnIn}{Number of burn-in iterations for the BGLR model. Default is 5000.}
+\item{burnIn}{Number of burn-in iterations for the BGLR model. Default is 4000.}
 
 \item{thin}{Thinning interval for the BGLR model. Default is 10.}
 

@@ -7,13 +7,13 @@
 pca_polynomial(
   SNPs,
   y,
-  degree_vals = c(2, 3),
-  scale_vals = c(0.1, 1),
-  offset_vals = c(0, 1),
+  dg = c(2, 3),
+  sc = c(0.5, 1, 2),
+  off = c(0, 1, 2),
   var_threshold = 0.01,
   n_folds = 5,
   nIter = 10000,
-  burnIn = 5000,
+  burnIn = 4000,
   thin = 10,
   save_xlsx = TRUE,
   file_name = "pca_polynomial.xlsx"
@@ -24,11 +24,11 @@ pca_polynomial(
 
 \item{y}{A numeric vector of phenotypic values corresponding to the individuals.}
 
-\item{degree_vals}{A numeric vector of degree values for the Polynomial kernel. Default is 2 and 3.}
+\item{dg}{A numeric vector of degree values for the Polynomial kernel. Default is 2 and 3.}
 
-\item{scale_vals}{A numeric vector of sigma values for the Polynomial kernel. Default is 0.1 and 1.}
+\item{sc}{A numeric vector of sigma values for the Polynomial kernel. Default is 0.1 and 1.}
 
-\item{offset_vals}{A numeric vector of order values for the Polynomial kernel. Default is 0 and 1.}
+\item{off}{A numeric vector of order values for the Polynomial kernel. Default is 0 and 1.}
 
 \item{var_threshold}{Minimum proportion of variance explained required for a principal component to be retained. Default is 0.01.}
 

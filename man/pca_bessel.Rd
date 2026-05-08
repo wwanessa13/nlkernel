@@ -7,9 +7,9 @@
 pca_bessel(
   SNPs,
   y,
-  sigma_vals = c(0.001, 0.01, 0.1),
-  order_vals = c(0, 1),
-  degree_vals = c(2, 3),
+  sg = c(0.1, 0.5, 1),
+  ord = c(0, 1, 2),
+  dg = c(2, 3),
   var_threshold = 0.01,
   n_folds = 5,
   nIter = 10000,
@@ -24,11 +24,11 @@ pca_bessel(
 
 \item{y}{A numeric vector of phenotypic values corresponding to the individuals.}
 
-\item{sigma_vals}{A numeric vector of sigma values for the Bessel kernel. Default is c(0.001, 0.01, 0.1).}
+\item{sg}{A numeric vector of sigma values for the Bessel kernel. Default is c(0.001, 0.01, 0.1).}
 
-\item{order_vals}{A numeric vector of order values for the Bessel kernel. Default is c(0, 1).}
+\item{ord}{A numeric vector of order values for the Bessel kernel. Default is c(0, 1).}
 
-\item{degree_vals}{A numeric vector of degree values for the Bessel kernel. Default is c(2, 3).}
+\item{dg}{A numeric vector of degree values for the Bessel kernel. Default is c(2, 3).}
 
 \item{var_threshold}{Minimum proportion of variance explained required for a principal component to be retained. Default is 0.01.}
 

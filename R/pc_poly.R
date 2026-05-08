@@ -9,9 +9,9 @@
 #'
 #' @param SNPs A numeric matrix of SNP genotypes, with individuals in rows and markers in columns.
 #' @param y A numeric vector of phenotypic values corresponding to the individuals.
-#' @param scale_vals A numeric vector of sigma values for the Polynomial kernel. Default is 0.1 and 1.
-#' @param offset_vals A numeric vector of order values for the Polynomial kernel. Default is 0 and 1.
-#' @param degree_vals A numeric vector of degree values for the Polynomial kernel. Default is 2 and 3.
+#' @param sc A numeric vector of sigma values for the Polynomial kernel. Default is 0.1 and 1.
+#' @param off A numeric vector of order values for the Polynomial kernel. Default is 0 and 1.
+#' @param dg A numeric vector of degree values for the Polynomial kernel. Default is 2 and 3.
 #' @param var_threshold Minimum proportion of variance explained required for a principal component to be retained. Default is 0.01.
 #' @param n_folds Number of folds for cross-validation. Default is 5.
 #' @param nIter Total number of iterations for the BGLR model. Default is 10000.
@@ -29,13 +29,13 @@
 #' @export
 
 pca_polynomial <- function(SNPs, y,
-                           degree_vals = c(2, 3),
-                           scale_vals = c(0.1, 1),
-                           offset_vals = c(0, 1),
+                           dg = c(2, 3),
+                           sc = c(0.5, 1, 2),
+                           off = c(0, 1, 2),
                            var_threshold = 0.01,
                            n_folds = 5,
                            nIter = 10000,
-                           burnIn = 5000,
+                           burnIn = 4000,
                            thin = 10,
                            save_xlsx = TRUE,
                            file_name = "pca_polynomial.xlsx") {
@@ -56,9 +56,9 @@ pca_polynomial <- function(SNPs, y,
   }
 
   grid <- expand.grid(
-    degree = degree_vals,
-    scale  = scale_vals,
-    offset = offset_vals
+    degree = dg,
+    scale  = sc,
+    offset = off
   )
 
   set.seed(123)
@@ -105,7 +105,7 @@ pca_polynomial <- function(SNPs, y,
       features = nPC
     )
 
-    embedding <- predict(kpca_model, SNPs)
+    embedding <- kpca_model@rotated
     embedding <- as.matrix(embedding)
 
     Kmat <- tcrossprod(embedding) / ncol(embedding)
@@ -182,10 +182,5 @@ pca_polynomial <- function(SNPs, y,
     )
   }
 
-  return(
-    list(
-      results = results,
-      predictions = predictions
-    )
-  )
+  return(results)
 }

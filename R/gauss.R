@@ -122,11 +122,5 @@ gaussian <- function(SNPs, y,
     write_xlsx(results, file_name)
   }
 
-  return(
-    list(
-      results = results,
-      predictions = predictions,
-      folds = folds
-    )
-  )
+  return(results)
 }

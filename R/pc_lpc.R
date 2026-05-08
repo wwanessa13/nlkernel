@@ -91,7 +91,7 @@ pca_laplacian <- function(SNPs, y,
       features = nPC
     )
 
-    embedding <- predict(kpca_model, SNPs)
+    embedding <- kpca_model@rotated
     embedding <- as.matrix(embedding)
 
     Kmat <- tcrossprod(embedding) / ncol(embedding)
@@ -156,11 +156,5 @@ pca_laplacian <- function(SNPs, y,
     write_xlsx(results, file_name)
   }
 
-  return(
-    list(
-      results = results,
-      predictions = predictions,
-      folds = folds
-    )
-  )
+  return(results)
 }

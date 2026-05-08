@@ -11,7 +11,7 @@
 #' @param var_threshold Minimum proportion of variance explained required for a principal component to be retained. Default is 0.01.
 #' @param n_folds Number of folds for cross-validation. Default is 5.
 #' @param nIter Total number of iterations for the BGLR model. Default is 10000.
-#' @param burnIn Number of burn-in iterations for the BGLR model. Default is 5000.
+#' @param burnIn Number of burn-in iterations for the BGLR model. Default is 4000.
 #' @param thin Thinning interval for the BGLR model. Default is 10.
 #' @param save_xlsx A logical value indicating whether to save results in an Excel file. Default is TRUE.
 #' @param file_name Character string specifying the name of the Excel file. Default is "pca.xlsx".
@@ -29,7 +29,7 @@ pca <- function(SNPs, y,
                 var_threshold = 0.01,
                 n_folds = 5,
                 nIter = 10000,
-                burnIn = 5000,
+                burnIn = 4000,
                 thin = 10,
                 save_xlsx = TRUE,
                 file_name = "pca.xlsx") {
@@ -115,7 +115,8 @@ pca <- function(SNPs, y,
   results <- data.frame(
     Mean_Accuracy = mean(acc_folds, na.rm = TRUE),
     SD_Accuracy = sd(acc_folds, na.rm = TRUE)
-  )
+  ) |>
+    arrange(desc(Mean_Accuracy))
 
   print(results)
 
@@ -123,11 +124,5 @@ pca <- function(SNPs, y,
     write_xlsx(results, file_name)
   }
 
-  return(
-    list(
-      results = results,
-      predictions = predictions,
-      folds = folds
-    )
-  )
+  return(results)
 }

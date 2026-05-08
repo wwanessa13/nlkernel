@@ -9,9 +9,9 @@
 #'
 #' @param SNPs A numeric matrix of SNP genotypes, with individuals in rows and markers in columns.
 #' @param y A numeric vector of phenotypic values corresponding to the individuals.
-#' @param sigma_vals A numeric vector of sigma values for the Bessel kernel. Default is c(0.001, 0.01, 0.1).
-#' @param order_vals A numeric vector of order values for the Bessel kernel. Default is c(0, 1).
-#' @param degree_vals A numeric vector of degree values for the Bessel kernel. Default is c(2, 3).
+#' @param sg A numeric vector of sigma values for the Bessel kernel. Default is c(0.001, 0.01, 0.1).
+#' @param ord A numeric vector of order values for the Bessel kernel. Default is c(0, 1).
+#' @param dg A numeric vector of degree values for the Bessel kernel. Default is c(2, 3).
 #' @param var_threshold Minimum proportion of variance explained required for a principal component to be retained. Default is 0.01.
 #' @param n_folds Number of folds for cross-validation. Default is 5.
 #' @param nIter Total number of iterations for the BGLR model. Default is 10000.
@@ -29,9 +29,9 @@
 #' @export
 
 pca_bessel <- function(SNPs, y,
-                       sigma_vals = c(0.001, 0.01, 0.1),
-                       order_vals = c(0, 1),
-                       degree_vals = c(2, 3),
+                       sg = c(0.1, 0.5, 1),
+                       ord = c(0, 1, 2),
+                       dg = c(2, 3),
                        var_threshold = 0.01,
                        n_folds = 5,
                        nIter = 10000,
@@ -56,9 +56,9 @@ pca_bessel <- function(SNPs, y,
   }
 
   grid <- expand.grid(
-    degree = degree_vals,
-    order  = order_vals,
-    sigma  = sigma_vals
+    degree = dg,
+    order  = ord,
+    sigma  = sg
   )
 
   set.seed(123)
@@ -109,7 +109,7 @@ pca_bessel <- function(SNPs, y,
       features = nPC
     )
 
-    embedding <- predict(kpca_model, SNPs)
+    embedding <- kpca_model@rotated
     embedding <- as.matrix(embedding)
 
     Kmat <- tcrossprod(embedding) / ncol(embedding)
@@ -186,10 +186,5 @@ pca_bessel <- function(SNPs, y,
     )
   }
 
-  return(
-    list(
-      results = results,
-      predictions = predictions
-    )
-  )
+  return(results)
 }

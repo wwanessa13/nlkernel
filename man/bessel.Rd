@@ -9,7 +9,7 @@ bessel(
   y,
   sg = c(0.1, 0.5, 1),
   ord = c(0, 1, 2),
-  dg = c(1, 2, 3),
+  dg = c(2, 3),
   n_folds = 5,
   nIter = 10000,
   burnIn = 4000,
@@ -27,7 +27,7 @@ bessel(
 
 \item{ord}{A numeric vector of order values for the Bessel kernel. Default is 0, 1 and 2.}
 
-\item{dg}{A numeric vector of degree values for the Bessel kernel. Default is 1, 2 and 3.}
+\item{dg}{A numeric vector of degree values for the Bessel kernel. Default is 2 and 3.}
 
 \item{n_folds}{The number of folds for cross-validation. Default is 5.}
 
