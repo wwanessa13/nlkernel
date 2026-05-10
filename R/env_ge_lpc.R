@@ -1,9 +1,10 @@
-#' Multi-Environment Genomic Prediction via Laplacian Kernel
+#' Multi-Environment Genomic Prediction via Laplacian Kernel with GxE Interaction
 #'
 #' This function performs genomic prediction across multiple environments by
-#' integrating genotype and environmental information using a Laplacian Kernel under a main effects framework.
-#' It supports three cross-validation schemes (CV1, CV2, CV0) and performs a
-#' grid search to optimize kernel hyperparameters.
+#' accounting for fixed environmental effects, main genomic effects modeled with
+#' a Laplacian kernel, and Genotype by Environment (GxE) interaction. The GxE
+#' kernel is computed as the Hadamard product between the observation-level
+#' genomic kernel and the environmental relationship matrix.
 #'
 #' @param SNPs A numeric matrix of SNP genotypes (individuals in rows, markers in columns).
 #'   Must have \code{rownames} corresponding to the genotype IDs.
@@ -14,39 +15,54 @@
 #'   it is automatically generated from the \code{env} vector.
 #' @param CV A character string specifying the cross-validation scheme:
 #'   \itemize{
-#'     \item \code{"CV1"}: prediction performance of unobserved genotypes in observed environments.
-#'     \item \code{"CV2"}: predicting performance of genotypes observed in only a subset of environments.
-#'     \item \code{"CV0"}: prediction performance of observed genotypes in unobserved environments.
+#'     \item \code{"CV1"}: Prediction of unobserved genotypes in observed environments.
+#'     \item \code{"CV2"}: Prediction of genotypes observed in only a subset of environments.
+#'     \item \code{"CV0"}: Prediction of observed genotypes in completely unobserved environments.
 #'   }
-#' @param sigma A numeric vector of sigma values for the Laplacian kernel. Default is 0.001, 0.01, 0.05, 0.1.
+#' @param sg A numeric vector of sigma values for the Laplacian kernel.
+#'   Default is \code{c(0.001, 0.01, 0.05, 0.1)}.
 #' @param nIter Total number of iterations for the BGLR Gibbs sampler. Default is 10000.
 #' @param burnIn Number of burn-in iterations to be discarded. Default is 4000.
 #' @param thin Thinning interval for the MCMC chain. Default is 10.
-#' @param save_xlsx Logical. If TRUE, saves the results to an Excel file.Default is TRUE.
-#' @param file_name Character string for the Excel file name. If NULL, a name is
-#'   automatically generated based on the CV scheme. Default is NULL.
+#' @param save_xlsx Logical. If \code{TRUE}, saves the predictive capacity results to an Excel file. Default is \code{TRUE}.
+#' @param file_name Character string for the Excel file name. If \code{NULL}, a name
+#'   is automatically generated as "laplacian_gxe_[CV_scheme].xlsx". Default is \code{NULL}.
 #'
-#' @return A dataframe containing the predictive capacity (Pearson correlation)
-#'   averaged across folds for each combination of hyperparameters and environment.
+#' @return A dataframe containing the predictive capacity (mean Pearson correlation)
+#'   for each Laplacian sigma value and environment, accounting for the GxE
+#'   interaction model.
+#'
+#' @details
+#' The model implemented is:
+#' \deqn{y = Xb + Zg + Zi + e}
+#' where \eqn{Xb} represents fixed environmental effects, \eqn{Zg} represents the
+#' main genomic effect modeled with the Laplacian kernel, and \eqn{Zi} represents
+#' the GxE interaction effect. The GxE kernel is computed as the Hadamard product
+#' between the observation-level Laplacian genomic kernel (G) and the environmental
+#' relationship matrix (E).
 #'
 #' @examples
 #' \dontrun{
-#' # Example usage:
-#' results <- env_g_laplacian(SNPs = X, y = data$yield, IDs = data$id,
-#'                             env = data$location, CV = "CV1")
+#' results <- env_ge_laplacian(
+#'   SNPs = X,
+#'   y = phen$yield,
+#'   IDs = phen$genotype,
+#'   env = phen$Env,
+#'   CV = "CV2"
+#' )
 #' }
 #'
 #' @export
 
-env_g_laplacian <- function(SNPs, y, IDs, env,
-                          EZ = NULL,
-                          CV = c("CV1", "CV2", "CV0"),
-                          sg = c(0.001, 0.01, 0.05, 0.1),
-                          nIter = 10000,
-                          burnIn = 4000,
-                          thin = 10,
-                          save_xlsx = TRUE,
-                          file_name = NULL) {
+env_ge_laplacian <- function(SNPs, y, IDs, env,
+                             EZ = NULL,
+                             CV = c("CV1", "CV2", "CV0"),
+                             sg = c(0.001, 0.01, 0.05, 0.1),
+                             nIter = 10000,
+                             burnIn = 4000,
+                             thin = 10,
+                             save_xlsx = TRUE,
+                             file_name = NULL) {
 
   CV <- match.arg(CV)
   set.seed(1)
@@ -64,17 +80,17 @@ env_g_laplacian <- function(SNPs, y, IDs, env,
     stop("SNPs must have row names corresponding to genotype IDs.")
   }
 
-  if (!all(unique(IDs) %in% rownames(SNPs))) {
-    stop("Some genotype IDs are not present in rownames(SNPs).")
-  }
-
   n <- length(y)
   uIDs <- unique(IDs)
   uenv <- unique(env)
 
+  if (!all(uIDs %in% rownames(SNPs))) {
+    stop("Some genotype IDs are not present in rownames(SNPs).")
+  }
+
   if (is.null(EZ)) {
     EZ <- model.matrix(~ factor(env) - 1)
-    colnames(EZ) <- paste0("Env_", uenv)
+    colnames(EZ) <- paste0("Env_", levels(factor(env)))
   }
 
   EZ <- as.matrix(EZ)
@@ -83,28 +99,31 @@ env_g_laplacian <- function(SNPs, y, IDs, env,
     stop("EZ must have the same number of rows as the length of y.")
   }
 
-  # Criar dataframe auxiliar
   Y <- data.frame(
     ID = IDs,
     Env = env,
     y = y
   )
 
-
   if (CV == "CV1") {
+
     n_folds <- 5
+
     fold_id <- rep(1:n_folds, length.out = length(uIDs))
     fold_id <- sample(fold_id)
 
     names(fold_id) <- uIDs
+
     Y$Fold <- fold_id[Y$ID]
   }
 
   if (CV == "CV2") {
+
     n_folds <- 5
     Y$Fold <- NA
 
     for (id in uIDs) {
+
       idx <- which(Y$ID == id)
       ni <- length(idx)
 
@@ -119,22 +138,40 @@ env_g_laplacian <- function(SNPs, y, IDs, env,
   if (CV == "CV0") {
 
     n_folds_env <- length(uenv)
-    fold_env <- sample(1:n_folds_env, size = n_folds_env)
+
+    fold_env <- sample(
+      1:n_folds_env,
+      size = n_folds_env
+    )
 
     names(fold_env) <- uenv
+
     Y$Fold <- fold_env[Y$Env]
   }
 
   folds_run <- sort(unique(Y$Fold))
 
   IDs_factor <- factor(IDs, levels = rownames(SNPs))
-  GZ <- model.matrix(~ IDs_factor - 1)
+
+  GZ <- as.matrix(model.matrix(~ IDs_factor - 1))
+
+  colnames(GZ) <- rownames(SNPs)
+
+  obs_names <- paste0(IDs, "_", env, "_", seq_along(y))
+
+  cat("Computing environmental relationship matrix\n")
+
+  E <- EZ %*% t(EZ)
+
+  rownames(E) <- obs_names
+  colnames(E) <- obs_names
 
   GDec_list <- vector("list", length(sg))
 
   for (i in seq_along(sg)) {
 
     sigma_i <- sg[i]
+
     cat("Computing Laplacian kernel for sigma =", sigma_i, "\n")
 
     Gn <- kernlab::kernelMatrix(
@@ -144,16 +181,43 @@ env_g_laplacian <- function(SNPs, y, IDs, env,
 
     Gn <- as.matrix(Gn)
 
+    rownames(Gn) <- rownames(SNPs)
+    colnames(Gn) <- rownames(SNPs)
+
+    cat("Expanding Laplacian genomic kernel to observation level\n")
+
     G <- GZ %*% Gn %*% t(GZ)
+
+    rownames(G) <- obs_names
+    colnames(G) <- obs_names
+
+    cat("Computing Laplacian GxE interaction kernel\n")
+
+    GxE <- G * E
+
+    rownames(GxE) <- obs_names
+    colnames(GxE) <- obs_names
+
+    cat("Eigen decomposition of Laplacian G\n")
 
     GDec <- eigen(G, symmetric = TRUE)
 
-    values <- pmax(GDec$values, 0)
+    GDec$values <- pmax(GDec$values, 0)
+    rownames(GDec$vectors) <- rownames(G)
+
+    cat("Eigen decomposition of Laplacian GxE\n")
+
+    GxEDec <- eigen(GxE, symmetric = TRUE)
+
+    GxEDec$values <- pmax(GxEDec$values, 0)
+    rownames(GxEDec$vectors) <- rownames(GxE)
 
     GDec_list[[i]] <- list(
       sigma = sigma_i,
-      values = values,
-      vectors = GDec$vectors
+      G_values = GDec$values,
+      G_vectors = GDec$vectors,
+      GxE_values = GxEDec$values,
+      GxE_vectors = GxEDec$vectors
     )
   }
 
@@ -165,13 +229,23 @@ env_g_laplacian <- function(SNPs, y, IDs, env,
 
     GDec_i <- GDec_list[[i]]
 
-    cat("\nRunning sigma =", GDec_i$sigma, "\n")
+    cat("\nRunning Laplacian + GxE for sigma =", GDec_i$sigma, "\n")
 
     ETA_i <- list(
-      list(X = EZ, model = "FIXED"),
-      list(V = GDec_i$vectors,
-           d = GDec_i$values,
-           model = "RKHS")
+      list(
+        X = EZ,
+        model = "FIXED"
+      ),
+      list(
+        V = GDec_i$G_vectors,
+        d = GDec_i$G_values,
+        model = "RKHS"
+      ),
+      list(
+        V = GDec_i$GxE_vectors,
+        d = GDec_i$GxE_values,
+        model = "RKHS"
+      )
     )
 
     for (fold in folds_run) {
@@ -211,12 +285,13 @@ env_g_laplacian <- function(SNPs, y, IDs, env,
             )
 
           } else {
+
             cor_val <- NA
           }
 
           list_metrics[[length(list_metrics) + 1]] <-
             data.frame(
-              Model = "Laplacian",
+              Model = "Laplacian_GxE",
               CV = CV,
               Sigma = GDec_i$sigma,
               Fold = fold,
@@ -241,7 +316,7 @@ env_g_laplacian <- function(SNPs, y, IDs, env,
   if (save_xlsx) {
 
     if (is.null(file_name)) {
-      file_name <- paste0("laplacian_", CV, ".xlsx")
+      file_name <- paste0("laplacian_gxe_", CV, ".xlsx")
     }
 
     writexl::write_xlsx(df_metrics, file_name)
