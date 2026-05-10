@@ -14,7 +14,10 @@
 #' @param IDs A vector of genotype IDs corresponding to each phenotypic observation.
 #' @param env A vector of environment labels corresponding to each phenotypic observation.
 #' @param EZ Optional matrix of fixed environmental effects. If \code{NULL}, it is created from \code{env}.
-#' @param CV Cross-validation scheme. One of \code{"CV1"}, \code{"CV2"}, or \code{"CV0"}.
+#' @param CV A character string specifying the cross-validation scheme:
+#' "CV1": Prediction of unobserved genotypes in observed environments.
+#' "CV2": Prediction of genotypes observed in only a subset of environments.
+#' "CV0": Prediction of observed genotypes in completely unobserved environments.
 #' @param dg A numeric vector of degree values for the Polynomial kernel. Default is \code{c(2, 3)}.
 #' @param sc A numeric vector of scale values for the Polynomial kernel. Default is \code{c(0.5, 1, 2)}.
 #' @param off A numeric vector of offset values for the Polynomial kernel. Default is \code{c(0, 1, 2)}.

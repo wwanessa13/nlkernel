@@ -13,7 +13,10 @@
 #' @param IDs A vector of genotype IDs corresponding to each phenotypic observation.
 #' @param env A vector of environment labels corresponding to each phenotypic observation.
 #' @param EZ Optional matrix of fixed environmental effects. If NULL, it is created from env.
-#' @param CV Cross-validation scheme. One of "CV1", "CV2", or "CV0".
+#' @param CV A character string specifying the cross-validation scheme:
+#' "CV1": Prediction of unobserved genotypes in observed environments.
+#' "CV2": Prediction of genotypes observed in only a subset of environments.
+#' "CV0": Prediction of observed genotypes in completely unobserved environments.
 #' @param poly_degree Degree parameter for the polynomial kernel. Default is 2.
 #' @param poly_scale Scale parameter for the polynomial kernel. Default is 2.
 #' @param poly_offset Offset parameter for the polynomial kernel. Default is 2.
@@ -35,7 +38,7 @@
 #'
 #' @export
 
-env_g_comb <- function(SNPs, y, IDs, env,
+env_g_combinations <- function(SNPs, y, IDs, env,
                                EZ = NULL,
                                CV = c("CV1", "CV2", "CV0"),
                                poly_degree = 2,

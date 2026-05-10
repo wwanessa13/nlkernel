@@ -33,11 +33,9 @@ Must have \code{rownames} corresponding to the genotype IDs.}
 it is automatically generated from the \code{env} vector.}
 
 \item{CV}{A character string specifying the cross-validation scheme:
-\itemize{
-\item \code{"CV1"}: Prediction of unobserved genotypes in observed environments.
-\item \code{"CV2"}: Prediction of genotypes observed in only a subset of environments.
-\item \code{"CV0"}: Prediction of observed genotypes in completely unobserved environments.
-}}
+"CV1": Prediction of unobserved genotypes in observed environments.
+"CV2": Prediction of genotypes observed in only a subset of environments.
+"CV0": Prediction of observed genotypes in completely unobserved environments.}
 
 \item{ploidy}{Integer. The ploidy level of the species. Default is 2.}
 
@@ -50,7 +48,7 @@ it is automatically generated from the \code{env} vector.}
 \item{save_xlsx}{Logical. If \code{TRUE}, saves the predictive capacity results to an Excel file. Default is \code{TRUE}.}
 
 \item{file_name}{Character string for the Excel file name. If \code{NULL}, a name
-is automatically generated as "gblup_gxe_\link{CV_scheme}.xlsx". Default is \code{NULL}.}
+is automatically generated as "gblup_CV(1, 2 or 0).xlsx". Default is \code{NULL}.}
 }
 \value{
 A dataframe containing the predictive capacity (mean Pearson correlation)
@@ -61,14 +59,6 @@ This function performs genomic prediction across multiple environments by
 accounting for main effects (Genotype and Environment) and the Genotype by
 Environment (GxE) interaction. It uses a VanRaden-based genomic relationship
 matrix and an environmental kernel to model the interaction via a Hadamard product.
-}
-\details{
-The model implemented is:
-\deqn{y = Xb + Zg + Zi + e}
-where \eqn{Xb} represents fixed environmental effects, \eqn{Zg} represents the
-main genomic effects (G), and \eqn{Zi} represents the GxE interaction effects.
-The GxE kernel is computed as the Hadamard product (cell-by-cell) of the
-genomic (G) and environmental (E) relationship matrices.
 }
 \examples{
 \dontrun{

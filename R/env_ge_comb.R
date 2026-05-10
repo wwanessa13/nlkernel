@@ -56,7 +56,7 @@
 #'
 #' @export
 
-env_ge_comb <- function(SNPs, y, IDs, env,
+env_ge_combinations <- function(SNPs, y, IDs, env,
                         EZ = NULL,
                         CV = c("CV1", "CV2", "CV0"),
                         poly_degree = 2,

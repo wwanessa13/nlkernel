@@ -13,11 +13,9 @@
 #' @param EZ An incidence matrix for fixed environmental effects. If \code{NULL},
 #'   it is automatically generated from the \code{env} vector.
 #' @param CV A character string specifying the cross-validation scheme:
-#'   \itemize{
-#'     \item \code{"CV1"}: prediction performance of unobserved genotypes in observed environments.
-#'     \item \code{"CV2"}: predicting performance of genotypes observed in only a subset of environments.
-#'     \item \code{"CV0"}: prediction performance of observed genotypes in unobserved environments.
-#'   }
+#' "CV1": Prediction of unobserved genotypes in observed environments.
+#' "CV2": Prediction of genotypes observed in only a subset of environments.
+#' "CV0": Prediction of observed genotypes in completely unobserved environments.
 #' @param sigma A numeric vector of sigma values for the Gaussian kernel. Default is 0.001, 0.01, 0.05, 0.1.
 #' @param nIter Total number of iterations for the BGLR Gibbs sampler. Default is 10000.
 #' @param burnIn Number of burn-in iterations to be discarded. Default is 4000.

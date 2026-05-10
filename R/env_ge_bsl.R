@@ -14,11 +14,9 @@
 #' @param EZ An incidence matrix for fixed environmental effects. If \code{NULL},
 #'   it is automatically generated from the \code{env} vector.
 #' @param CV A character string specifying the cross-validation scheme:
-#'   \itemize{
-#'     \item \code{"CV1"}: Prediction of unobserved genotypes in observed environments.
-#'     \item \code{"CV2"}: Prediction of genotypes observed in only a subset of environments.
-#'     \item \code{"CV0"}: Prediction of observed genotypes in completely unobserved environments.
-#'   }
+#' "CV1": Prediction of unobserved genotypes in observed environments.
+#' "CV2": Prediction of genotypes observed in only a subset of environments.
+#' "CV0": Prediction of observed genotypes in completely unobserved environments.
 #' @param degree A numeric vector of degree values for the Bessel kernel. Default is \code{c(2, 3)}.
 #' @param order A numeric vector of order values for the Bessel kernel. Default is \code{c(0, 1, 2)}.
 #' @param sigma A numeric vector of sigma values for the Bessel kernel. Default is \code{c(0.1, 0.5, 1)}.
@@ -27,20 +25,11 @@
 #' @param thin Thinning interval for the MCMC chain. Default is 10.
 #' @param save_xlsx Logical. If \code{TRUE}, saves the predictive capacity results to an Excel file. Default is \code{TRUE}.
 #' @param file_name Character string for the Excel file name. If \code{NULL}, a name
-#'   is automatically generated as "bessel_gxe_[CV_scheme].xlsx". Default is \code{NULL}.
+#'   is automatically generated as "gblup_CV(1, 2 or 0).xlsx". Default is \code{NULL}.
 #'
 #' @return A dataframe containing the predictive capacity (mean Pearson correlation)
 #'   for each combination of Bessel kernel hyperparameters and environment,
 #'   accounting for the GxE interaction model.
-#'
-#' @details
-#' The model implemented is:
-#' \deqn{y = Xb + Zg + Zi + e}
-#' where \eqn{Xb} represents fixed environmental effects, \eqn{Zg} represents the
-#' main genomic effect modeled with the Bessel kernel, and \eqn{Zi} represents the
-#' GxE interaction effect. The GxE kernel is computed as the Hadamard product
-#' between the observation-level Bessel genomic kernel (G) and the environmental
-#' relationship matrix (E).
 #'
 #' @examples
 #' \dontrun{

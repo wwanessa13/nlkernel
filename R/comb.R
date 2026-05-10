@@ -30,7 +30,7 @@
 #'
 #' @export
 
-kernels_comb <- function(SNPs, y,
+combinations <- function(SNPs, y,
                          poly_degree = 2,
                          poly_scale = 2,
                          poly_offset = 2,

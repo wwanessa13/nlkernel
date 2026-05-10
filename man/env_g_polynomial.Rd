@@ -35,11 +35,9 @@ Must have \code{rownames} corresponding to the genotype IDs.}
 it is automatically generated from the \code{env} vector.}
 
 \item{CV}{A character string specifying the cross-validation scheme:
-\itemize{
-\item \code{"CV1"}: prediction performance of unobserved genotypes in observed environments.
-\item \code{"CV2"}: predicting performance of genotypes observed in only a subset of environments.
-\item \code{"CV0"}: prediction performance of observed genotypes in unobserved environments.
-}}
+"CV1": Prediction of unobserved genotypes in observed environments.
+"CV2": Prediction of genotypes observed in only a subset of environments.
+"CV0": Prediction of observed genotypes in completely unobserved environments.}
 
 \item{degree}{A numeric vector of degree values for the Polynomial kernel. Default is 2 and 3.}
 

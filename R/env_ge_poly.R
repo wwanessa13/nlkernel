@@ -1,46 +1,39 @@
-#' Kernel PCA with Polynomial Kernel for Multi-Environment Genomic Prediction with GxE Interaction
+#' Multi-Environment Genomic Prediction via Polynomial Kernel with GxE Interaction
 #'
-#' This function fits kernel PCA models using a Polynomial kernel for
-#' multi-environment genomic prediction. It evaluates different combinations of
-#' degree, scale, and offset parameters. Kernel principal components are selected
-#' according to a variance-explained threshold, and a genomic kernel is
-#' constructed from the selected component scores. The kernel is expanded to the
-#' observation level and combined with fixed environmental effects and a
-#' Genotype by Environment (GxE) interaction kernel.
+#' This function performs genomic prediction across multiple environments by
+#' accounting for fixed environmental effects, main genomic effects modeled with
+#' a Polynomial kernel, and Genotype by Environment (GxE) interaction. The GxE kernel
+#' is computed as the Hadamard product between the observation-level genomic
+#' kernel and the environmental relationship matrix.
 #'
-#' @param SNPs A numeric matrix of SNP genotypes, with genotypes in rows and markers in columns.
-#'   Row names must correspond to genotype IDs.
+#' @param SNPs A numeric matrix of SNP genotypes (individuals in rows, markers in columns).
+#'   Must have \code{rownames} corresponding to the genotype IDs.
 #' @param y A numeric vector of phenotypic values.
-#' @param IDs A vector of genotype IDs corresponding to each phenotypic observation.
-#' @param env A vector of environment labels corresponding to each phenotypic observation.
-#' @param EZ Optional matrix of fixed environmental effects. If \code{NULL}, it is created from \code{env}.
-#' @param CV Cross-validation scheme. One of \code{"CV1"}, \code{"CV2"}, or \code{"CV0"}.
-#' @param dg A numeric vector of degree values for the Polynomial kernel. Default is \code{c(2, 3)}.
-#' @param sc A numeric vector of scale values for the Polynomial kernel. Default is \code{c(0.5, 1, 2)}.
-#' @param off A numeric vector of offset values for the Polynomial kernel. Default is \code{c(0, 1, 2)}.
-#' @param var_threshold Minimum proportion of variance explained required for a principal component to be retained. Default is 0.01.
-#' @param nIter Total number of iterations for the BGLR model. Default is 10000.
-#' @param burnIn Number of burn-in iterations for the BGLR model. Default is 4000.
-#' @param thin Thinning interval for the BGLR model. Default is 10.
-#' @param save_xlsx A logical value indicating whether to save results in an Excel file. Default is \code{TRUE}.
-#' @param file_name Character string specifying the name of the Excel file. If \code{NULL}, a default name is used.
+#' @param IDs A character vector indicating the genotype identity for each observation in \code{y}.
+#' @param env A character vector indicating the environment for each observation in \code{y}.
+#' @param EZ An incidence matrix for fixed environmental effects. If \code{NULL},
+#'   it is automatically generated from the \code{env} vector.
+#' @param CV A character string specifying the cross-validation scheme:
+#' "CV1": Prediction of unobserved genotypes in observed environments.
+#' "CV2": Prediction of genotypes observed in only a subset of environments.
+#' "CV0": Prediction of observed genotypes in completely unobserved environments.
+#' @param degree A numeric vector of degree values for the Polynomial kernel. Default is 2 and 3.
+#' @param scale A numeric vector of scale values for the Polynomial kernel. Default is 0.5, 1 and 2.
+#' @param offset A numeric vector of offset values for the Polynomial kernel. Default is 0, 1 and 2.
+#' @param nIter Total number of iterations for the BGLR Gibbs sampler. Default is 10000.
+#' @param burnIn Number of burn-in iterations to be discarded. Default is 4000.
+#' @param thin Thinning interval for the MCMC chain. Default is 10.
+#' @param save_xlsx Logical. If \code{TRUE}, saves the predictive capacity results to an Excel file. Default is \code{TRUE}.
+#' @param file_name Character string for the Excel file name. If \code{NULL}, a name
+#'   is automatically generated as "gblup_CV(1, 2 or 0).xlsx". Default is \code{NULL}.
 #'
-#' @return A data frame with the mean predictive capacity by model, CV scheme,
-#' Polynomial kernel parameters, number of selected PCs, and environment,
-#' accounting for the GxE interaction model.
-#'
-#' @details
-#' The model implemented is:
-#' \deqn{y = Xb + Zg + Zi + e}
-#' where \eqn{Xb} represents fixed environmental effects, \eqn{Zg} represents the
-#' main genomic effect obtained from the KPCA Polynomial kernel, and \eqn{Zi}
-#' represents the GxE interaction effect. The GxE kernel is computed as the
-#' Hadamard product between the observation-level KPCA Polynomial genomic kernel
-#' and the environmental relationship matrix.
+#' @return A dataframe containing the predictive capacity (mean Pearson correlation)
+#'   for each combination of Polynomial kernel hyperparameters and environment,
+#'   accounting for the GxE interaction model.
 #'
 #' @examples
 #' \dontrun{
-#' results <- env_ge_pca_polynomial(
+#' results <- env_ge_polynomial(
 #'   SNPs = X,
 #'   y = phen$yield,
 #'   IDs = phen$genotype,
@@ -51,25 +44,22 @@
 #'
 #' @export
 
-env_ge_pca_polynomial <- function(SNPs, y, IDs, env,
-                                  EZ = NULL,
-                                  CV = c("CV1", "CV2", "CV0"),
-                                  dg = c(2, 3),
-                                  sc = c(0.5, 1, 2),
-                                  off = c(0, 1, 2),
-                                  var_threshold = 0.01,
-                                  nIter = 10000,
-                                  burnIn = 4000,
-                                  thin = 10,
-                                  save_xlsx = TRUE,
-                                  file_name = NULL) {
+env_ge_polynomial <- function(SNPs, y, IDs, env,
+                          EZ = NULL,
+                          CV = c("CV1", "CV2", "CV0"),
+                          degree = c(2, 3),
+                          scale = c(0.5, 1, 2),
+                          offset = c(0, 1, 2),
+                          nIter = 10000,
+                          burnIn = 4000,
+                          thin = 10,
+                          save_xlsx = TRUE,
+                          file_name = NULL) {
 
   CV <- match.arg(CV)
   set.seed(1)
 
   SNPs <- as.matrix(SNPs)
-  storage.mode(SNPs) <- "numeric"
-
   y <- as.numeric(y)
   IDs <- as.character(IDs)
   env <- as.character(env)
@@ -169,128 +159,81 @@ env_ge_pca_polynomial <- function(SNPs, y, IDs, env,
   colnames(E) <- obs_names
 
   grid <- expand.grid(
-    degree = dg,
-    scale = sc,
-    offset = off
+    degree = degree,
+    order = order,
+    sigma = sigma
   )
 
-  GDec_list <- list()
-  counter <- 1
+  GDec_list <- vector("list", nrow(grid))
 
   for (i in seq_len(nrow(grid))) {
 
     deg <- grid$degree[i]
-    scale_i <- grid$scale[i]
-    offset_i <- grid$offset[i]
+    or <- grid$order[i]
+    sig <- grid$sigma[i]
 
     cat(
-      "Computing KPCA Polynomial kernel for degree =", deg,
-      "| scale =", scale_i,
-      "| offset =", offset_i, "\n"
+      "Computing Polynomial kernel for degree =", deg,
+      "| order =", or,
+      "| sigma =", sig, "\n"
     )
 
-    kpca_temp <- kernlab::kpca(
-      x = SNPs,
-      kernel = "polydot",
-      kpar = list(
+    K_poly <- kernlab::kernelMatrix(
+      kernlab::polydot(
         degree = deg,
-        scale = scale_i,
-        offset = offset_i
+        order = or,
+        sigma = sig
       ),
-      features = 0
+      SNPs
     )
 
-    eig_vals <- kernlab::eig(kpca_temp)
-    var_explained <- eig_vals / sum(eig_vals)
+    K_poly <- as.matrix(K_poly)
 
-    nPC <- sum(var_explained > var_threshold)
+    rownames(K_poly) <- rownames(SNPs)
+    colnames(K_poly) <- rownames(SNPs)
 
-    if (nPC < 2) {
-      warning(
-        paste(
-          "Degree", deg,
-          "Scale", scale_i,
-          "Offset", offset_i,
-          "selected fewer than 2 PCs. Skipping."
-        )
-      )
-      next
-    }
+    cat("Expanding Polynomial genomic kernel to observation level\n")
 
-    cat("Number of PCs selected:", nPC, "\n")
-
-    kpca_model <- kernlab::kpca(
-      x = SNPs,
-      kernel = "polydot",
-      kpar = list(
-        degree = deg,
-        scale = scale_i,
-        offset = offset_i
-      ),
-      features = nPC
-    )
-
-    embedding <- kpca_model@rotated
-    embedding <- as.matrix(embedding)
-
-    Gn <- tcrossprod(embedding) / ncol(embedding)
-
-    rownames(Gn) <- rownames(SNPs)
-    colnames(Gn) <- rownames(SNPs)
-
-    cat("Expanding KPCA Polynomial genomic kernel to observation level\n")
-
-    G <- GZ %*% Gn %*% t(GZ)
+    G <- GZ %*% K_poly %*% t(GZ)
 
     rownames(G) <- obs_names
     colnames(G) <- obs_names
 
-    cat("Computing KPCA Polynomial GxE interaction kernel\n")
+    cat("Computing Polynomial GxE interaction kernel\n")
 
     GxE <- G * E
 
     rownames(GxE) <- obs_names
     colnames(GxE) <- obs_names
 
-    cat("Eigen decomposition of KPCA Polynomial G\n")
+    cat("Eigen decomposition of Polynomial G\n")
 
     GDec <- eigen(G, symmetric = TRUE)
 
     GDec$values <- pmax(GDec$values, 0)
     rownames(GDec$vectors) <- rownames(G)
 
-    cat("Eigen decomposition of KPCA Polynomial GxE\n")
+    cat("Eigen decomposition of Polynomial GxE\n")
 
     GxEDec <- eigen(GxE, symmetric = TRUE)
 
     GxEDec$values <- pmax(GxEDec$values, 0)
     rownames(GxEDec$vectors) <- rownames(GxE)
 
-    GDec_list[[counter]] <- list(
+    GDec_list[[i]] <- list(
       degree = deg,
-      scale = scale_i,
-      offset = offset_i,
-      nPC = nPC,
+      order = or,
+      sigma = sig,
       G_values = GDec$values,
       G_vectors = GDec$vectors,
       GxE_values = GxEDec$values,
       GxE_vectors = GxEDec$vectors
     )
-
-    counter <- counter + 1
   }
 
-  if (length(GDec_list) == 0) {
-    stop("No KPCA Polynomial model was fitted. All parameter combinations selected fewer than 2 PCs.")
-  }
-
-  names(GDec_list) <- vapply(GDec_list, function(x) {
-    paste0(
-      "degree_", x$degree,
-      "_scale_", x$scale,
-      "_offset_", x$offset
-    )
-  }, character(1))
+  names(GDec_list) <- apply(grid, 1, function(x) {
+    paste0("degree_", x[1], "_order_", x[2], "_sigma_", x[3])
+  })
 
   list_metrics <- list()
 
@@ -299,10 +242,9 @@ env_ge_pca_polynomial <- function(SNPs, y, IDs, env,
     GDec_i <- GDec_list[[i]]
 
     cat(
-      "\nRunning KPCA Polynomial + GxE model with degree =", GDec_i$degree,
-      "| scale =", GDec_i$scale,
-      "| offset =", GDec_i$offset,
-      "| nPC =", GDec_i$nPC, "\n"
+      "\nRunning Polynomial + GxE for degree =", GDec_i$degree,
+      "| order =", GDec_i$order,
+      "| sigma =", GDec_i$sigma, "\n"
     )
 
     ETA_i <- list(
@@ -365,12 +307,11 @@ env_ge_pca_polynomial <- function(SNPs, y, IDs, env,
 
           list_metrics[[length(list_metrics) + 1]] <-
             data.frame(
-              Model = "KPCA_Polynomial_GxE",
+              Model = "Polynomial_GxE",
               CV = CV,
               Degree = GDec_i$degree,
-              Scale = GDec_i$scale,
-              Offset = GDec_i$offset,
-              nPC = GDec_i$nPC,
+              Order = GDec_i$order,
+              Sigma = GDec_i$sigma,
               Fold = fold,
               Environment = a,
               Predictive_Capacity = cor_val
@@ -383,20 +324,17 @@ env_ge_pca_polynomial <- function(SNPs, y, IDs, env,
   df_raw <- do.call(rbind, list_metrics)
 
   df_metrics <- aggregate(
-    Predictive_Capacity ~ Model + CV + Degree + Scale + Offset +
-      nPC + Environment,
+    Predictive_Capacity ~ Model + CV + Degree + Order + Sigma + Environment,
     data = df_raw,
     FUN = function(x) mean(x, na.rm = TRUE)
   )
 
   names(df_metrics)[names(df_metrics) == "Predictive_Capacity"] <- "pred"
 
-  df_metrics <- df_metrics[order(-df_metrics$pred), ]
-
   if (save_xlsx) {
 
     if (is.null(file_name)) {
-      file_name <- paste0("kpca_polynomial_gxe_", CV, ".xlsx")
+      file_name <- paste0("polynomial_gxe_", CV, ".xlsx")
     }
 
     writexl::write_xlsx(df_metrics, file_name)

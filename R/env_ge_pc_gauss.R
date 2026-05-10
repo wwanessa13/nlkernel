@@ -14,7 +14,10 @@
 #' @param IDs A vector of genotype IDs corresponding to each phenotypic observation.
 #' @param env A vector of environment labels corresponding to each phenotypic observation.
 #' @param EZ Optional matrix of fixed environmental effects. If \code{NULL}, it is created from \code{env}.
-#' @param CV Cross-validation scheme. One of \code{"CV1"}, \code{"CV2"}, or \code{"CV0"}.
+#' @param CV A character string specifying the cross-validation scheme:
+#' "CV1": Prediction of unobserved genotypes in observed environments.
+#' "CV2": Prediction of genotypes observed in only a subset of environments.
+#' "CV0": Prediction of observed genotypes in completely unobserved environments.
 #' @param sg A numeric vector of sigma values for the Gaussian kernel.
 #'   Default is \code{c(0.001, 0.01, 0.05, 0.1)}.
 #' @param var_threshold Minimum proportion of variance explained required for a principal component to be retained. Default is 0.01.

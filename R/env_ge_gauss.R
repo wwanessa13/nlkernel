@@ -14,11 +14,9 @@
 #' @param EZ An incidence matrix for fixed environmental effects. If \code{NULL},
 #'   it is automatically generated from the \code{env} vector.
 #' @param CV A character string specifying the cross-validation scheme:
-#'   \itemize{
-#'     \item \code{"CV1"}: Prediction of unobserved genotypes in observed environments.
-#'     \item \code{"CV2"}: Prediction of genotypes observed in only a subset of environments.
-#'     \item \code{"CV0"}: Prediction of observed genotypes in completely unobserved environments.
-#'   }
+#' "CV1": Prediction of unobserved genotypes in observed environments.
+#' "CV2": Prediction of genotypes observed in only a subset of environments.
+#' "CV0": Prediction of observed genotypes in completely unobserved environments.
 #' @param sg A numeric vector of sigma values for the Gaussian kernel.
 #'   Default is \code{c(0.001, 0.01, 0.05, 0.1)}.
 #' @param nIter Total number of iterations for the BGLR Gibbs sampler. Default is 10000.
@@ -26,7 +24,7 @@
 #' @param thin Thinning interval for the MCMC chain. Default is 10.
 #' @param save_xlsx Logical. If \code{TRUE}, saves the predictive capacity results to an Excel file. Default is \code{TRUE}.
 #' @param file_name Character string for the Excel file name. If \code{NULL}, a name
-#'   is automatically generated as "gaussian_gxe_[CV_scheme].xlsx". Default is \code{NULL}.
+#'   is automatically generated as "gblup_CV(1, 2 or 0).xlsx". Default is \code{NULL}.
 #'
 #' @return A dataframe containing the predictive capacity (mean Pearson correlation)
 #'   for each Gaussian sigma value and environment, accounting for the GxE
