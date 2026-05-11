@@ -6,14 +6,14 @@
 #'
 #' @param SNPs A numeric matrix of SNP genotypes, with individuals in rows and markers in columns.
 #' @param y A numeric vector of phenotypic values corresponding to the individuals.
-#' @param poly_degree Degree parameter for the polynomial kernel. Default is 2.
-#' @param poly_scale Scale parameter for the polynomial kernel. Default is 2.
-#' @param poly_offset Offset parameter for the polynomial kernel. Default is 2.
-#' @param lpc_sigma Sigma parameter for the Laplacian kernel. Default is 0.01.
-#' @param bsl_sigma Sigma parameter for the Bessel kernel. Default is 0.1.
-#' @param bsl_order Order parameter for the Bessel kernel. Default is 1.
-#' @param bsl_degree Degree parameter for the Bessel kernel. Default is 2.
-#' @param rbf_sigma Sigma parameter for the Gaussian/RBF kernel. Default is 0.001.
+#' @param polynomial_degree Degree parameter for the polynomialnomial kernel. Default is 2.
+#' @param polynomial_scale Scale parameter for the polynomialnomial kernel. Default is 2.
+#' @param polynomial_offset Offset parameter for the polynomialnomial kernel. Default is 2.
+#' @param laplacian_sigma Sigma parameter for the Laplacian kernel. Default is 0.01.
+#' @param bessel_sigma Sigma parameter for the Bessel kernel. Default is 0.1.
+#' @param bessel_order Order parameter for the Bessel kernel. Default is 1.
+#' @param bessel_degree Degree parameter for the Bessel kernel. Default is 2.
+#' @param gaussian_sigma Sigma parameter for the Gaussian/RBF kernel. Default is 0.001.
 #' @param n_folds Number of folds for cross-validation. Default is 5.
 #' @param nIter Total number of iterations for the BGLR model. Default is 10000.
 #' @param burnIn Number of burn-in iterations for the BGLR model. Default is 4000.
@@ -31,14 +31,14 @@
 #' @export
 
 combinations <- function(SNPs, y,
-                         poly_degree = 2,
-                         poly_scale = 2,
-                         poly_offset = 2,
-                         lpc_sigma = 0.01,
-                         bsl_sigma = 0.1,
-                         bsl_order = 1,
-                         bsl_degree = 2,
-                         rbf_sigma = 0.001,
+                         polynomial_degree = 2,
+                         polynomial_scale = 2,
+                         polynomial_offset = 2,
+                         laplacian_sigma = 0.01,
+                         bessel_sigma = 0.1,
+                         bessel_order = 1,
+                         bessel_degree = 2,
+                         gaussian_sigma = 0.001,
                          n_folds = 5,
                          nIter = 10000,
                          burnIn = 4000,
@@ -62,38 +62,38 @@ combinations <- function(SNPs, y,
   }
 
   kernels <- list(
-    poly = function(SNPs) {
+    polynomial = function(SNPs) {
       kernelMatrix(
-        polydot(
-          degree = poly_degree,
-          scale = poly_scale,
-          offset = poly_offset
+        polynomialdot(
+          degree = polynomial_degree,
+          scale = polynomial_scale,
+          offset = polynomial_offset
         ),
         SNPs
       )
     },
 
-    lpc = function(SNPs) {
+    laplacian = function(SNPs) {
       kernelMatrix(
-        laplacedot(sigma = lpc_sigma),
+        laplacedot(sigma = laplacian_sigma),
         SNPs
       )
     },
 
-    bsl = function(SNPs) {
+    bessel = function(SNPs) {
       kernelMatrix(
         besseldot(
-          sigma = bsl_sigma,
-          order = bsl_order,
-          degree = bsl_degree
+          sigma = bessel_sigma,
+          order = bessel_order,
+          degree = bessel_degree
         ),
         SNPs
       )
     },
 
-    rbf = function(SNPs) {
+    gaussian = function(SNPs) {
       kernelMatrix(
-        rbfdot(sigma = rbf_sigma),
+        rbfdot(sigma = gaussian_sigma),
         SNPs
       )
     },
@@ -108,16 +108,16 @@ combinations <- function(SNPs, y,
   )
 
   comb_list <- list(
-    c("poly", "rbf"),
-    c("poly", "bsl"),
-    c("poly", "lpc"),
-    c("rbf", "bsl"),
-    c("rbf", "lpc"),
-    c("bsl", "lpc"),
-    c("poly", "GBLUP"),
-    c("rbf", "GBLUP"),
-    c("bsl", "GBLUP"),
-    c("lpc", "GBLUP")
+    c("polynomial", "gaussian"),
+    c("polynomial", "bessel"),
+    c("polynomial", "laplacian"),
+    c("gaussian", "bessel"),
+    c("gaussian", "laplacian"),
+    c("bessel", "laplacian"),
+    c("polynomial", "GBLUP"),
+    c("gaussian", "GBLUP"),
+    c("bessel", "GBLUP"),
+    c("laplacian", "GBLUP")
   )
 
   set.seed(123)

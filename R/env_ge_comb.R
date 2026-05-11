@@ -15,16 +15,15 @@
 #' @param env A vector of environment labels corresponding to each phenotypic observation.
 #' @param EZ Optional matrix of fixed environmental effects. If \code{NULL}, it is created from \code{env}.
 #' @param CV Cross-validation scheme. One of \code{"CV1"}, \code{"CV2"}, or \code{"CV0"}.
-#' @param poly_degree Degree parameter for the polynomial kernel. Default is 2.
-#' @param poly_scale Scale parameter for the polynomial kernel. Default is 2.
-#' @param poly_offset Offset parameter for the polynomial kernel. Default is 2.
-#' @param lpc_sigma Sigma parameter for the Laplacian kernel. Default is 0.01.
-#' @param bsl_sigma Sigma parameter for the Bessel kernel. Default is 0.1.
-#' @param bsl_order Order parameter for the Bessel kernel. Default is 1.
-#' @param bsl_degree Degree parameter for the Bessel kernel. Default is 2.
-#' @param rbf_sigma Sigma parameter for the Gaussian/RBF kernel. Default is 0.001.
+#' @param polynomial_degree Degree parameter for the polynomialnomial kernel. Default is 2.
+#' @param polynomial_scale Scale parameter for the polynomialnomial kernel. Default is 2.
+#' @param polynomial_offset Offset parameter for the polynomialnomial kernel. Default is 2.
+#' @param laplacian_sigma Sigma parameter for the Laplacian kernel. Default is 0.01.
+#' @param bessel_sigma Sigma parameter for the Bessel kernel. Default is 0.1.
+#' @param bessel_order Order parameter for the Bessel kernel. Default is 1.
+#' @param bessel_degree Degree parameter for the Bessel kernel. Default is 2.
+#' @param gaussian_sigma Sigma parameter for the Gaussian/RBF kernel. Default is 0.001.
 #' @param ploidy Ploidy level used in \code{AGHmatrix::Gmatrix}. Default is 2.
-#' @param maf Minor allele frequency threshold used in \code{AGHmatrix::Gmatrix}. Default is 0.05.
 #' @param nIter Total number of iterations for the BGLR model. Default is 10000.
 #' @param burnIn Number of burn-in iterations for the BGLR model. Default is 4000.
 #' @param thin Thinning interval for the BGLR model. Default is 10.
@@ -33,15 +32,6 @@
 #'
 #' @return A data frame with the mean predictive capacity by kernel combination,
 #' CV scheme, and environment, accounting for GxE interaction effects.
-#'
-#' @details
-#' The model implemented is:
-#' \deqn{y = Xb + Zg_1 + Zi_1 + Zg_2 + Zi_2 + e}
-#' where \eqn{Xb} represents fixed environmental effects, \eqn{Zg_1} and
-#' \eqn{Zg_2} represent the main genomic effects of two kernels, and
-#' \eqn{Zi_1} and \eqn{Zi_2} represent their respective GxE interaction effects.
-#' Each GxE kernel is computed as the Hadamard product between the
-#' observation-level genomic kernel and the environmental relationship matrix.
 #'
 #' @examples
 #' \dontrun{
@@ -59,16 +49,15 @@
 env_ge_combinations <- function(SNPs, y, IDs, env,
                         EZ = NULL,
                         CV = c("CV1", "CV2", "CV0"),
-                        poly_degree = 2,
-                        poly_scale = 2,
-                        poly_offset = 2,
-                        lpc_sigma = 0.01,
-                        bsl_sigma = 0.1,
-                        bsl_order = 1,
-                        bsl_degree = 2,
-                        rbf_sigma = 0.001,
+                        polynomial_degree = 2,
+                        polynomial_scale = 2,
+                        polynomial_offset = 2,
+                        laplacian_sigma = 0.01,
+                        bessel_sigma = 0.1,
+                        bessel_order = 1,
+                        bessel_degree = 2,
+                        gaussian_sigma = 0.001,
                         ploidy = 2,
-                        maf = 0.05,
                         nIter = 10000,
                         burnIn = 4000,
                         thin = 10,
@@ -180,38 +169,38 @@ env_ge_combinations <- function(SNPs, y, IDs, env,
   colnames(E) <- obs_names
 
   kernels <- list(
-    poly = function(SNPs) {
+    polynomial = function(SNPs) {
       kernlab::kernelMatrix(
-        kernlab::polydot(
-          degree = poly_degree,
-          scale = poly_scale,
-          offset = poly_offset
+        kernlab::polynomialdot(
+          degree = polynomial_degree,
+          scale = polynomial_scale,
+          offset = polynomial_offset
         ),
         SNPs
       )
     },
 
-    lpc = function(SNPs) {
+    laplacian = function(SNPs) {
       kernlab::kernelMatrix(
-        kernlab::laplacedot(sigma = lpc_sigma),
+        kernlab::laplacedot(sigma = laplacian_sigma),
         SNPs
       )
     },
 
-    bsl = function(SNPs) {
+    bessel = function(SNPs) {
       kernlab::kernelMatrix(
         kernlab::besseldot(
-          sigma = bsl_sigma,
-          order = bsl_order,
-          degree = bsl_degree
+          sigma = bessel_sigma,
+          order = bessel_order,
+          degree = bessel_degree
         ),
         SNPs
       )
     },
 
-    rbf = function(SNPs) {
+    gaussian = function(SNPs) {
       kernlab::kernelMatrix(
-        kernlab::rbfdot(sigma = rbf_sigma),
+        kernlab::rbfdot(sigma = gaussian_sigma),
         SNPs
       )
     },
@@ -221,22 +210,22 @@ env_ge_combinations <- function(SNPs, y, IDs, env,
         SNPmatrix = SNPs,
         method = "VanRaden",
         ploidy = ploidy,
-        maf = maf
+        maf = 0.05
       )
     }
   )
 
   comb_list <- list(
-    c("poly", "rbf"),
-    c("poly", "bsl"),
-    c("poly", "lpc"),
-    c("rbf", "bsl"),
-    c("rbf", "lpc"),
-    c("bsl", "lpc"),
-    c("poly", "GBLUP"),
-    c("rbf", "GBLUP"),
-    c("bsl", "GBLUP"),
-    c("lpc", "GBLUP")
+    c("polynomial", "gaussian"),
+    c("polynomial", "bessel"),
+    c("polynomial", "laplacian"),
+    c("gaussian", "bessel"),
+    c("gaussian", "laplacian"),
+    c("bessel", "laplacian"),
+    c("polynomial", "GBLUP"),
+    c("gaussian", "GBLUP"),
+    c("bessel", "GBLUP"),
+    c("laplacian", "GBLUP")
   )
 
   KDec_by_kernel <- list()

@@ -7,14 +7,14 @@
 combinations(
   SNPs,
   y,
-  poly_degree = 2,
-  poly_scale = 2,
-  poly_offset = 2,
-  lpc_sigma = 0.01,
-  bsl_sigma = 0.1,
-  bsl_order = 1,
-  bsl_degree = 2,
-  rbf_sigma = 0.001,
+  polynomial_degree = 2,
+  polynomial_scale = 2,
+  polynomial_offset = 2,
+  laplacian_sigma = 0.01,
+  bessel_sigma = 0.1,
+  bessel_order = 1,
+  bessel_degree = 2,
+  gaussian_sigma = 0.001,
   n_folds = 5,
   nIter = 10000,
   burnIn = 4000,
@@ -28,21 +28,21 @@ combinations(
 
 \item{y}{A numeric vector of phenotypic values corresponding to the individuals.}
 
-\item{poly_degree}{Degree parameter for the polynomial kernel. Default is 2.}
+\item{polynomial_degree}{Degree parameter for the polynomialnomial kernel. Default is 2.}
 
-\item{poly_scale}{Scale parameter for the polynomial kernel. Default is 2.}
+\item{polynomial_scale}{Scale parameter for the polynomialnomial kernel. Default is 2.}
 
-\item{poly_offset}{Offset parameter for the polynomial kernel. Default is 2.}
+\item{polynomial_offset}{Offset parameter for the polynomialnomial kernel. Default is 2.}
 
-\item{lpc_sigma}{Sigma parameter for the Laplacian kernel. Default is 0.01.}
+\item{laplacian_sigma}{Sigma parameter for the Laplacian kernel. Default is 0.01.}
 
-\item{bsl_sigma}{Sigma parameter for the Bessel kernel. Default is 0.1.}
+\item{bessel_sigma}{Sigma parameter for the Bessel kernel. Default is 0.1.}
 
-\item{bsl_order}{Order parameter for the Bessel kernel. Default is 1.}
+\item{bessel_order}{Order parameter for the Bessel kernel. Default is 1.}
 
-\item{bsl_degree}{Degree parameter for the Bessel kernel. Default is 2.}
+\item{bessel_degree}{Degree parameter for the Bessel kernel. Default is 2.}
 
-\item{rbf_sigma}{Sigma parameter for the Gaussian/RBF kernel. Default is 0.001.}
+\item{gaussian_sigma}{Sigma parameter for the Gaussian/RBF kernel. Default is 0.001.}
 
 \item{n_folds}{Number of folds for cross-validation. Default is 5.}
 
