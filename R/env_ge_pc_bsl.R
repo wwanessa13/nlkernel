@@ -300,7 +300,7 @@ env_ge_pca_bessel <- function(SNPs, y, IDs, env,
     GDec_i <- GDec_list[[i]]
 
     cat(
-      "\nRunning KPCA Bessel + GxE model with sigma =", GDec_i$sigma,
+      "\nRunning KPCA Bessel with sigma =", GDec_i$sigma,
       "| order =", GDec_i$order,
       "| degree =", GDec_i$degree,
       "| nPC =", GDec_i$nPC, "\n"

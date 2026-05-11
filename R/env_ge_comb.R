@@ -293,7 +293,7 @@ env_ge_combinations <- function(SNPs, y, IDs, env,
 
     kname <- paste(comb, collapse = "_")
 
-    cat("\nRunning combination with GxE:", kname, "\n")
+    cat("\nRunning combination:", kname, "\n")
 
     ETA_kernels <- unlist(
       lapply(comb, function(k) {

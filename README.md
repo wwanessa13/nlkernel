@@ -72,7 +72,7 @@ To evaluate model performance, K-fold cross-validation is used.
 - gaussian
 - bessel
 - polynomial
-- comb
+- combinations
 - pca
 - pca_laplacian
 - pca_gaussian
@@ -86,8 +86,8 @@ SNPs <- read.table("gen.txt")
 
 y <- read.table("phenotypes.txt") %>% pull(yield)
 
-model <- laplacian(SNPs, y)
-model$results
+results <- gaussian(SNPs, y)
+print(results)
 ```
 
 ## Multi environment
@@ -116,7 +116,7 @@ effects, following a main-effects genomic framework.
 - env_g_gaussian
 - env_g_bessel
 - env_g_polynomial
-- env_g_comb
+- env_g_combinations
 - env_g_pca
 - env_g_pca_laplacian
 - env_g_pca_gaussian
@@ -153,7 +153,7 @@ matrix and extends it to the G×E interaction matrix.
 - env_ge_gaussian
 - env_ge_bessel
 - env_ge_polynomial
-- env_ge_comb
+- env_ge_combinations
 - env_ge_pca
 - env_ge_pca_laplacian
 - env_ge_pca_gaussian

@@ -233,7 +233,7 @@ env_ge_pca <- function(SNPs, y, IDs, env,
 
     GDec_i <- GDec_list[[i]]
 
-    cat("\nRunning PCA-based genomic kernel with GxE\n")
+    cat("\nRunning PCA\n")
 
     ETA_i <- list(
       list(

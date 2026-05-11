@@ -218,7 +218,7 @@ env_ge_laplacian <- function(SNPs, y, IDs, env,
 
     GDec_i <- GDec_list[[i]]
 
-    cat("\nRunning Laplacian + GxE for sigma =", GDec_i$sigma, "\n")
+    cat("\nRunning Laplacian for sigma =", GDec_i$sigma, "\n")
 
     ETA_i <- list(
       list(

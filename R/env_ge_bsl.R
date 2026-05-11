@@ -242,7 +242,7 @@ env_ge_bessel <- function(SNPs, y, IDs, env,
     GDec_i <- GDec_list[[i]]
 
     cat(
-      "\nRunning Bessel + GxE for degree =", GDec_i$degree,
+      "\nRunning Bessel for degree =", GDec_i$degree,
       "| order =", GDec_i$order,
       "| sigma =", GDec_i$sigma, "\n"
     )

@@ -50,7 +50,7 @@
 #'
 #' @export
 
-env_ge_pca_laplian <- function(SNPs, y, IDs, env,
+env_ge_pca_laplacian <- function(SNPs, y, IDs, env,
                                EZ = NULL,
                                CV = c("CV1", "CV2", "CV0"),
                                sg = c(0.001, 0.01, 0.05, 0.1),
@@ -269,7 +269,7 @@ env_ge_pca_laplian <- function(SNPs, y, IDs, env,
     GDec_i <- GDec_list[[i]]
 
     cat(
-      "\nRunning KPCA Laplacian + GxE model with sigma =",
+      "\nRunning KPCA Laplacian with sigma =",
       GDec_i$sigma,
       "| nPC =", GDec_i$nPC, "\n"
     )

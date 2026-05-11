@@ -227,7 +227,7 @@ env_ge_gaussian <- function(SNPs, y, IDs, env,
 
     GDec_i <- GDec_list[[i]]
 
-    cat("\nRunning Gaussian + GxE for sigma =", GDec_i$sigma, "\n")
+    cat("\nRunning Gaussian for sigma =", GDec_i$sigma, "\n")
 
     ETA_i <- list(
       list(

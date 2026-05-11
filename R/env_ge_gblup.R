@@ -210,7 +210,7 @@ env_ge_gblup <- function(SNPs, y, IDs, env,
 
   list_metrics <- list()
 
-  cat("\nRunning GBLUP + GxE\n")
+  cat("\nRunning GBLUP\n")
 
   for (fold in folds_run) {
 

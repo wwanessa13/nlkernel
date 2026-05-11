@@ -272,7 +272,7 @@ env_ge_pca_gaussian <- function(SNPs, y, IDs, env,
     GDec_i <- GDec_list[[i]]
 
     cat(
-      "\nRunning KPCA Gaussian + GxE model with sigma =",
+      "\nRunning KPCA Gaussian with sigma =",
       GDec_i$sigma,
       "| nPC =", GDec_i$nPC, "\n"
     )

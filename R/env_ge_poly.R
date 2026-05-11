@@ -160,8 +160,8 @@ env_ge_polynomial <- function(SNPs, y, IDs, env,
 
   grid <- expand.grid(
     degree = degree,
-    order = order,
-    sigma = sigma
+    offset = offset,
+    scale = scale
   )
 
   GDec_list <- vector("list", nrow(grid))
@@ -169,20 +169,20 @@ env_ge_polynomial <- function(SNPs, y, IDs, env,
   for (i in seq_len(nrow(grid))) {
 
     deg <- grid$degree[i]
-    or <- grid$order[i]
-    sig <- grid$sigma[i]
+    or <- grid$offset[i]
+    sig <- grid$scale[i]
 
     cat(
       "Computing Polynomial kernel for degree =", deg,
-      "| order =", or,
-      "| sigma =", sig, "\n"
+      "| offset =", or,
+      "| scale =", sig, "\n"
     )
 
     K_poly <- kernlab::kernelMatrix(
       kernlab::polydot(
         degree = deg,
-        order = or,
-        sigma = sig
+        offset = or,
+        scale = sig
       ),
       SNPs
     )
@@ -222,8 +222,8 @@ env_ge_polynomial <- function(SNPs, y, IDs, env,
 
     GDec_list[[i]] <- list(
       degree = deg,
-      order = or,
-      sigma = sig,
+      offset = or,
+      scale = sig,
       G_values = GDec$values,
       G_vectors = GDec$vectors,
       GxE_values = GxEDec$values,
@@ -232,7 +232,7 @@ env_ge_polynomial <- function(SNPs, y, IDs, env,
   }
 
   names(GDec_list) <- apply(grid, 1, function(x) {
-    paste0("degree_", x[1], "_order_", x[2], "_sigma_", x[3])
+    paste0("degree_", x[1], "_offset_", x[2], "_scale_", x[3])
   })
 
   list_metrics <- list()
@@ -242,9 +242,9 @@ env_ge_polynomial <- function(SNPs, y, IDs, env,
     GDec_i <- GDec_list[[i]]
 
     cat(
-      "\nRunning Polynomial + GxE for degree =", GDec_i$degree,
-      "| order =", GDec_i$order,
-      "| sigma =", GDec_i$sigma, "\n"
+      "\nRunning Polynomial for degree =", GDec_i$degree,
+      "| offset =", GDec_i$offset,
+      "| scale =", GDec_i$scale, "\n"
     )
 
     ETA_i <- list(
@@ -310,8 +310,8 @@ env_ge_polynomial <- function(SNPs, y, IDs, env,
               Model = "Polynomial_GxE",
               CV = CV,
               Degree = GDec_i$degree,
-              Order = GDec_i$order,
-              Sigma = GDec_i$sigma,
+              Offset = GDec_i$offset,
+              Scale = GDec_i$scale,
               Fold = fold,
               Environment = a,
               Predictive_Capacity = cor_val
@@ -324,7 +324,7 @@ env_ge_polynomial <- function(SNPs, y, IDs, env,
   df_raw <- do.call(rbind, list_metrics)
 
   df_metrics <- aggregate(
-    Predictive_Capacity ~ Model + CV + Degree + Order + Sigma + Environment,
+    Predictive_Capacity ~ Model + CV + Degree + Offset + Scale + Environment,
     data = df_raw,
     FUN = function(x) mean(x, na.rm = TRUE)
   )

@@ -302,7 +302,7 @@ env_ge_pca_polynomial <- function(SNPs, y, IDs, env,
     GDec_i <- GDec_list[[i]]
 
     cat(
-      "\nRunning KPCA Polynomial + GxE model with degree =", GDec_i$degree,
+      "\nRunning KPCA Polynomial with degree =", GDec_i$degree,
       "| scale =", GDec_i$scale,
       "| offset =", GDec_i$offset,
       "| nPC =", GDec_i$nPC, "\n"
