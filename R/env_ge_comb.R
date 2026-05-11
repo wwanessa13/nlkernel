@@ -171,7 +171,7 @@ env_ge_combinations <- function(SNPs, y, IDs, env,
   kernels <- list(
     polynomial = function(SNPs) {
       kernlab::kernelMatrix(
-        kernlab::polynomialdot(
+        kernlab::polydot(
           degree = polynomial_degree,
           scale = polynomial_scale,
           offset = polynomial_offset
