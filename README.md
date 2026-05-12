@@ -188,3 +188,141 @@ recommend renaming the `.xlsx` file before running the next trait.
 Alternatively, you can set `save_xlsx = FALSE` in the model function
 arguments. Then, after inspecting the results, you can save them in your
 preferred format and with your desired file name.
+
+## Final model
+
+After testing several models and identifying the best-performing one,
+the final model can be trained using all available data and
+automatically saved.
+
+### Single environment
+
+``` r
+results <- train_final_single(
+  SNPs = SNPs,
+  y = y,
+  model = "gaussian",
+  gaussian_sigma = 0.001,
+  file_name = "final_gaussian.rds")
+
+results <- train_final_single(
+  SNPs = SNPs,
+  y = y,
+  model = "pca_laplacian",
+  laplacian_sigma = 0.01,
+  var_threshold = 0.01,
+  file_name = "final_pca_laplacian.rds"
+)
+
+results <- train_final_single(
+  SNPs = SNPs,
+  y = y,
+  model = c("laplacian", "bessel"),
+  laplacian_sigma = 0.01,
+  bessel_sigma = 0.1,
+  bessel_order = 1,
+  bessel_degree = 2,
+  file_name = "final_laplacian_bessel.rds")
+```
+
+### Multi environment
+
+Y = E + G + e
+
+``` r
+results <- train_final_multi(
+  SNPs,
+  y,
+  IDs,
+  env,
+  model = "gblup",
+  file_name = "final_env_gblup.rds"
+)
+
+results <- train_final_multi(
+  SNPs,
+  y,
+  IDs,
+  env,
+  model = "pca_bessel",
+  bessel_sigma = 0.1,
+  bessel_order = 0,
+  bessel_degree = 2,
+  file_name = "final_env_bessel.rds"
+)
+
+results <- train_final_multi(
+  SNPs,
+  y,
+  IDs,
+  env,
+  model = c("polynomial", "gaussian"),
+  gaussian_sigma = 0.01,
+  polynomial_degree = 3,
+  polynomial_scale = 2,
+  polynomial_offset = 0,
+  file_name = "final_env_polynomial_gaussian.rds"
+)
+```
+
+Y = E + G + GxE + e
+
+``` r
+results <- train_final_multige(
+  SNPs = SNPs,
+  y = y,
+  IDs = IDs,
+  env = env,
+  model = "gblup",
+  file_name = "final_env_gblup_gxe.rds"
+)
+
+results <- train_final_multige(
+  SNPs = SNPs,
+  y = y,
+  IDs = IDs,
+  env = env,
+  model = "pca_laplacian",
+  laplacian_sigma = 0.01,
+  var_threshold = 0.01,
+  file_name = "final_env_pca_laplacian_gxe.rds"
+)
+
+results <- train_final_multige(
+  SNPs = SNPs,
+  y = y,
+  IDs = IDs,
+  env = env,
+  model = c("polynomial", "gaussian"),
+  polynomial_degree = 2,
+  polynomial_scale = 2,
+  polynomial_offset = 2,
+  gaussian_sigma = 0.001,
+  file_name = "final_env_polynomial_gaussian_gxe.rds"
+)
+```
+
+## Pratical Application
+
+Please note that the model is based on a transformed marker matrix, and
+therefore the same preprocessing steps must be applied to any new marker
+data before prediction.
+
+This saved model can later be loaded:
+
+``` r
+final_model <- readRDS("model_name.rds")
+```
+
+Alternativally, we provide a user-friendly application interface for
+applying trained genomic prediction models to new individuals based on
+their marker information.
+
+``` r
+run_app()
+```
+
+This workflow facilitates the practical use of genomic prediction in
+breeding programs by allowing breeders and researchers to move from
+model evaluation to routine prediction and selection in a simple and
+reproducible way.
