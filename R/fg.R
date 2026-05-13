@@ -37,8 +37,6 @@
 #' fit <- train_final_single(
 #'   SNPs = SNPs,
 #'   y = y,
-#'   IDs = IDs,
-#'   env = env,
 #'   model = c("laplacian", "bessel"),
 #'   laplacian_sigma = 0.01,
 #'   bessel_sigma = 0.1,

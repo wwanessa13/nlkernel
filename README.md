@@ -1,12 +1,6 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-<style>
-p {
-  text-align: justify;
-}
-</style>
-
 # nlkernel
 
 <!-- badges: start -->
@@ -179,21 +173,27 @@ print(results)
 
 ## Attention notes
 
-When you run a function with `file_name = NULL` argument, the result is
-saved by default using the model name. However, if you run the same
-model for more than one trait, the second output will overwrite the
-first one. Therefore, when using the same model for multiple traits, we
-recommend renaming the `.xlsx` file before running the next trait.
+1.  In this workflow, individuals or genotypes must be arranged in rows,
+    while SNP markers must be arranged in columns. During model
+    training, the order of the rows in the SNP matrix must match the
+    order of the phenotypic vector, ensuring that each genotype is
+    correctly associated with its observed phenotype.
 
-Alternatively, you can set `save_xlsx = FALSE` in the model function
-arguments. Then, after inspecting the results, you can save them in your
-preferred format and with your desired file name.
+2.  When you run a function with `file_name = NULL` argument, the result
+    is saved by default using the model name. However, if you run the
+    same model for more than one trait, the second output will overwrite
+    the first one. Therefore, when using the same model for multiple
+    traits, we recommend renaming the `.xlsx` file before running the
+    next trait. Alternatively, you can set `save_xlsx = FALSE` in the
+    model function arguments. Then, after inspecting the results, you
+    can save them in your preferred format and with your desired file
+    name.
 
 ## Final model
 
-After testing several models and identifying the best-performing one,
-the final model can be trained using all available data and
-automatically saved.
+After testing several models with cross validation and identifying the
+best-performing one, the final model can be trained using all available
+data and saved.
 
 ### Single environment
 
@@ -230,7 +230,7 @@ results <- train_final_single(
 Y = E + G + e
 
 ``` r
-results <- train_final_multi(
+results <- train_final_multig(
   SNPs,
   y,
   IDs,
@@ -239,7 +239,7 @@ results <- train_final_multi(
   file_name = "final_env_gblup.rds"
 )
 
-results <- train_final_multi(
+results <- train_final_multig(
   SNPs,
   y,
   IDs,
@@ -251,7 +251,7 @@ results <- train_final_multi(
   file_name = "final_env_bessel.rds"
 )
 
-results <- train_final_multi(
+results <- train_final_multig(
   SNPs,
   y,
   IDs,
@@ -304,25 +304,61 @@ results <- train_final_multige(
 
 ## Pratical Application
 
-Please note that the model is based on a transformed marker matrix, and
-therefore the same preprocessing steps must be applied to any new marker
-data before prediction.
-
 This saved model can later be loaded:
 
 ``` r
 final_model <- readRDS("model_name.rds")
 ```
 
-Alternativally, we provide a user-friendly application interface for
-applying trained genomic prediction models to new individuals based on
-their marker information.
+Once loaded, the object can be used to inspect the fitted model, recover
+the kernel matrices, access the original training data, check the
+selected hyperparameters, and predict new genotypes.
+
+Please note that the model is based on a transformed marker matrix, and
+therefore the same preprocessing steps must be applied to any new marker
+data before prediction.
+
+You can transform your new SNP matrix using the same model specification
+previously selected during training:
 
 ``` r
-run_app()
+genomic_matrix <- transform_snps(
+  SNPs = SNPs,
+  model = "laplacian",
+  laplacian_sigma = 0.01
+)
+
+G <- genomic_matrix$K$laplacian
 ```
 
-This workflow facilitates the practical use of genomic prediction in
-breeding programs by allowing breeders and researchers to move from
-model evaluation to routine prediction and selection in a simple and
-reproducible way.
+``` r
+genomic_matrix <- transform_snps(
+  SNPs = SNPs,
+  model = c("laplacian", "bessel"),
+  laplacian_sigma = 0.01,
+  bessel_sigma = 0.1,
+  bessel_order = 1,
+  bessel_degree = 2
+)
+
+G_laplacian <- genomic_matrix$K$laplacian
+G_bessel <- genomic_matrix$K$bessel
+```
+
+``` r
+genomic_pca <- transform_snps(
+  SNPs = SNPs,
+  model = "pca",
+  nPC = 20
+)
+
+M <- genomic_pca$transformed$pca
+```
+
+Now, the genomic matrix is ready to be loaded into the BGLR framework or
+any other training pipeline, as well as to predict new genotypes using a
+previously saved model.
+
+**Note:** In G×E models, the genomic matrix G must be combined with the
+environmental matrix E by element-wise multiplication, generating the
+G×E interaction kernel.
