@@ -17,6 +17,7 @@ env_g_polynomial(
   nIter = 10000,
   burnIn = 4000,
   thin = 10,
+  seed = 123,
   save_xlsx = TRUE,
   file_name = NULL
 )
@@ -50,6 +51,10 @@ it is automatically generated from the \code{env} vector.}
 \item{burnIn}{Number of burn-in iterations to be discarded. Default is 4000.}
 
 \item{thin}{Thinning interval for the MCMC chain. Default is 10.}
+
+\item{seed}{Integer value used to set the random seed for reproducibility in
+CV1 and CV2. Different seed values generate different random partitions of
+the dataset into cross-validation folds. Default is 123.}
 
 \item{save_xlsx}{Logical. If TRUE, saves the results to an Excel file.Default is TRUE.}
 

@@ -20,12 +20,21 @@
 #' @param nIter Total number of iterations for the BGLR Gibbs sampler. Default is 10000.
 #' @param burnIn Number of burn-in iterations to be discarded. Default is 4000.
 #' @param thin Thinning interval for the MCMC chain. Default is 10.
+#' @param seed Integer value used to set the random seed for reproducibility in
+#'   CV1 and CV2. Different seed values generate different random partitions of
+#'   the dataset into cross-validation folds. Default is 123.
 #' @param save_xlsx Logical. If \code{TRUE}, saves the predictive capacity results to an Excel file. Default is \code{TRUE}.
 #' @param file_name Character string for the Excel file name. If \code{NULL}, a name
 #'   is automatically generated as "gblup_CV(1, 2 or 0).xlsx". Default is \code{NULL}.
 #'
-#' @return A dataframe containing the predictive capacity (mean Pearson correlation)
-#'   for each environment, accounting for the GxE interaction model.
+#' @details
+#' The model implemented is:
+#' \deqn{y = Xb + Zg + Zi + e}
+#' where \eqn{Xb} represents fixed environmental effects, \eqn{Zg} represents the
+#' main genomic effect modeled with the G matrix (Van Raden, 2008), and \eqn{Zi} represents
+#' the GxE interaction effect. The GxE interaction is computed as the Hadamard product
+#' between the observation-level genomic matrix (G) and the environmental
+#' relationship matrix (E).
 #'
 #' @examples
 #' \dontrun{

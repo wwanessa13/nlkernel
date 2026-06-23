@@ -2,29 +2,25 @@
 #'
 #' This function fits kernel PCA models using a Bessel kernel for genomic
 #' prediction. It evaluates different combinations of sigma, order, and degree
-#' parameters. Principal components are selected according to a variance-explained
-#' threshold, and a kernel matrix is constructed from the selected component
-#' scores. Predictive accuracy is evaluated using k-fold cross-validation with
-#' the RKHS framework implemented in the BGLR package.
+#' parameters. All kernel principal components returned by the KPCA decomposition
+#' are used to construct a kernel matrix from the component scores. Predictive
+#' accuracy is evaluated using k-fold cross-validation with the RKHS framework
+#' implemented in the BGLR package.
 #'
 #' @param SNPs A numeric matrix of SNP genotypes, with individuals in rows and markers in columns.
 #' @param y A numeric vector of phenotypic values corresponding to the individuals.
-#' @param sg A numeric vector of sigma values for the Bessel kernel. Default is c(0.001, 0.01, 0.1).
-#' @param ord A numeric vector of order values for the Bessel kernel. Default is c(0, 1).
+#' @param sg A numeric vector of sigma values for the Bessel kernel. Default is c(0.1, 0.5, 1).
+#' @param ord A numeric vector of order values for the Bessel kernel. Default is c(0, 1, 2).
 #' @param dg A numeric vector of degree values for the Bessel kernel. Default is c(2, 3).
-#' @param var_threshold Minimum proportion of variance explained required for a principal component to be retained. Default is 0.01.
 #' @param n_folds Number of folds for cross-validation. Default is 5.
 #' @param nIter Total number of iterations for the BGLR model. Default is 10000.
 #' @param burnIn Number of burn-in iterations for the BGLR model. Default is 4000.
 #' @param thin Thinning interval for the BGLR model. Default is 10.
+#' @param seed Integer value used to set the random seed for reproducibility.
+#' Different seed values generate different random partitions of the dataset
+#' into cross-validation folds. Default is 123.
 #' @param save_xlsx A logical value indicating whether to save results in an Excel file. Default is TRUE.
 #' @param file_name Character string specifying the name of the Excel file. Default is "pca_bessel.xlsx".
-#'
-#' @return A list with:
-#' \describe{
-#'   \item{results}{A data frame with the mean and standard deviation of predictive accuracy for each combination of Bessel kernel parameters.}
-#'   \item{predictions}{A data frame with observed and predicted values for each fold and parameter combination.}
-#' }
 #'
 #' @export
 
@@ -32,11 +28,11 @@ pca_bessel <- function(SNPs, y,
                        sg = c(0.1, 0.5, 1),
                        ord = c(0, 1, 2),
                        dg = c(2, 3),
-                       var_threshold = 0.01,
                        n_folds = 5,
                        nIter = 10000,
                        burnIn = 4000,
                        thin = 10,
+                       seed = 123,
                        save_xlsx = TRUE,
                        file_name = "pca_bessel.xlsx") {
 
@@ -47,8 +43,8 @@ pca_bessel <- function(SNPs, y,
 
   SNPs <- as.matrix(SNPs)
   storage.mode(SNPs) <- "numeric"
-  y <- as.numeric(y)
 
+  y <- as.numeric(y)
   n <- length(y)
 
   if (nrow(SNPs) != n) {
@@ -57,11 +53,11 @@ pca_bessel <- function(SNPs, y,
 
   grid <- expand.grid(
     degree = dg,
-    order  = ord,
-    sigma  = sg
+    order = ord,
+    sigma = sg
   )
 
-  set.seed(123)
+  set.seed(seed)
   folds <- sample(rep(1:n_folds, length.out = n))
 
   results_list <- list()
@@ -74,43 +70,41 @@ pca_bessel <- function(SNPs, y,
     o <- grid$order[i]
     d <- grid$degree[i]
 
-    cat("Running Sigma =", s,
-        "| Order =", o,
-        "| Degree =", d, "\n")
+    cat(
+      "Running Sigma =", s,
+      "| Order =", o,
+      "| Degree =", d, "\n"
+    )
 
-    kpca_temp <- kpca(
+    kpca_model <- kernlab::kpca(
       x = SNPs,
       kernel = "besseldot",
-      kpar = list(sigma = s, order = o, degree = d),
+      kpar = list(
+        sigma = s,
+        order = o,
+        degree = d
+      ),
       features = 0
     )
 
-    eig_vals <- eig(kpca_temp)
-    var_explained <- eig_vals / sum(eig_vals)
+    embedding <- kpca_model@rotated
+    embedding <- as.matrix(embedding)
 
-    nPC <- sum(var_explained > var_threshold)
+    nPC <- ncol(embedding)
 
-    if (nPC < 2) {
+    if (is.null(nPC) || nPC < 1) {
       warning(
         paste(
-          "Sigma", s, "Order", o, "Degree", d,
-          "selected fewer than 2 PCs. Skipping."
+          "Sigma", s,
+          "Order", o,
+          "Degree", d,
+          "returned no KPCA components. Skipping."
         )
       )
       next
     }
 
-    cat("Number of PCs selected:", nPC, "\n")
-
-    kpca_model <- kpca(
-      x = SNPs,
-      kernel = "besseldot",
-      kpar = list(sigma = s, order = o, degree = d),
-      features = nPC
-    )
-
-    embedding <- kpca_model@rotated
-    embedding <- as.matrix(embedding)
+    cat("Number of PCs used:", nPC, "\n")
 
     Kmat <- tcrossprod(embedding) / ncol(embedding)
 
@@ -130,7 +124,7 @@ pca_bessel <- function(SNPs, y,
         list(K = Kmat, model = "RKHS")
       )
 
-      fit <- BGLR(
+      fit <- BGLR::BGLR(
         y = y_na,
         ETA = ETA,
         nIter = nIter,
@@ -148,9 +142,11 @@ pca_bessel <- function(SNPs, y,
       )
 
       fold_predictions[[f]] <- data.frame(
+        Model = "KPCA_Bessel",
         Sigma = s,
         Order = o,
         Degree = d,
+        nPC = nPC,
         Fold = f,
         Individual = idx_test,
         Observed = y[idx_test],
@@ -159,9 +155,11 @@ pca_bessel <- function(SNPs, y,
     }
 
     results_list[[counter]] <- data.frame(
+      Model = "KPCA_Bessel",
       Sigma = s,
       Order = o,
       Degree = d,
+      nPC = nPC,
       Mean_Accuracy = mean(acc_folds, na.rm = TRUE),
       SD_Accuracy = sd(acc_folds, na.rm = TRUE)
     )
@@ -171,13 +169,17 @@ pca_bessel <- function(SNPs, y,
     counter <- counter + 1
   }
 
+  if (length(results_list) == 0) {
+    stop("No KPCA Bessel model was fitted. No valid KPCA components were returned.")
+  }
+
   results <- do.call(rbind, results_list) |>
-    arrange(desc(Mean_Accuracy))
+    dplyr::arrange(desc(Mean_Accuracy))
 
   predictions <- do.call(rbind, predictions_list)
 
   if (save_xlsx) {
-    write_xlsx(
+    writexl::write_xlsx(
       list(
         results = results,
         predictions = predictions
@@ -186,5 +188,11 @@ pca_bessel <- function(SNPs, y,
     )
   }
 
-  return(results)
+  return(
+    list(
+      results = results,
+      predictions = predictions,
+      folds = folds
+    )
+  )
 }

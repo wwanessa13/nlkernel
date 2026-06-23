@@ -20,6 +20,9 @@
 #' @param nIter Total number of iterations for the BGLR Gibbs sampler. Default is 10000.
 #' @param burnIn Number of burn-in iterations to be discarded. Default is 4000.
 #' @param thin Thinning interval for the MCMC chain. Default is 10.
+#' @param seed Integer value used to set the random seed for reproducibility in
+#'   CV1 and CV2. Different seed values generate different random partitions of
+#'   the dataset into cross-validation folds. Default is 123.
 #' @param save_xlsx Logical. If TRUE, saves the results to an Excel file.Default is TRUE.
 #' @param file_name Character string for the Excel file name. If NULL, a name is
 #'   automatically generated based on the CV scheme. Default is NULL.
@@ -43,11 +46,11 @@ env_g_laplacian <- function(SNPs, y, IDs, env,
                           nIter = 10000,
                           burnIn = 4000,
                           thin = 10,
+                          seed = 123,
                           save_xlsx = TRUE,
                           file_name = NULL) {
 
   CV <- match.arg(CV)
-  set.seed(1)
 
   SNPs <- as.matrix(SNPs)
   y <- as.numeric(y)
@@ -90,6 +93,7 @@ env_g_laplacian <- function(SNPs, y, IDs, env,
 
 
   if (CV == "CV1") {
+    set.seed(seed)
     n_folds <- 5
     fold_id <- rep(1:n_folds, length.out = length(uIDs))
     fold_id <- sample(fold_id)
@@ -99,6 +103,7 @@ env_g_laplacian <- function(SNPs, y, IDs, env,
   }
 
   if (CV == "CV2") {
+    set.seed(seed)
     n_folds <- 5
     Y$Fold <- NA
 

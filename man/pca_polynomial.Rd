@@ -10,11 +10,11 @@ pca_polynomial(
   dg = c(2, 3),
   sc = c(0.5, 1, 2),
   off = c(0, 1, 2),
-  var_threshold = 0.01,
   n_folds = 5,
   nIter = 10000,
   burnIn = 4000,
   thin = 10,
+  seed = 123,
   save_xlsx = TRUE,
   file_name = "pca_polynomial.xlsx"
 )
@@ -24,13 +24,11 @@ pca_polynomial(
 
 \item{y}{A numeric vector of phenotypic values corresponding to the individuals.}
 
-\item{dg}{A numeric vector of degree values for the Polynomial kernel. Default is 2 and 3.}
+\item{dg}{A numeric vector of degree values for the Polynomial kernel. Default is c(2, 3).}
 
-\item{sc}{A numeric vector of sigma values for the Polynomial kernel. Default is 0.1 and 1.}
+\item{sc}{A numeric vector of scale values for the Polynomial kernel. Default is c(0.5, 1, 2).}
 
-\item{off}{A numeric vector of order values for the Polynomial kernel. Default is 0 and 1.}
-
-\item{var_threshold}{Minimum proportion of variance explained required for a principal component to be retained. Default is 0.01.}
+\item{off}{A numeric vector of offset values for the Polynomial kernel. Default is c(0, 1, 2).}
 
 \item{n_folds}{Number of folds for cross-validation. Default is 5.}
 
@@ -40,22 +38,19 @@ pca_polynomial(
 
 \item{thin}{Thinning interval for the BGLR model. Default is 10.}
 
+\item{seed}{Integer value used to set the random seed for reproducibility.
+Different seed values generate different random partitions of the dataset
+into cross-validation folds. Default is 123.}
+
 \item{save_xlsx}{A logical value indicating whether to save results in an Excel file. Default is TRUE.}
 
-\item{file_name}{Character string specifying the name of the Excel file. Default is "pca_bessel.xlsx".}
-}
-\value{
-A list with:
-\describe{
-\item{results}{A data frame with the mean and standard deviation of predictive accuracy for each combination of Polynomial kernel parameters.}
-\item{predictions}{A data frame with observed and predicted values for each fold and parameter combination.}
-}
+\item{file_name}{Character string specifying the name of the Excel file. Default is "pca_polynomial.xlsx".}
 }
 \description{
 This function fits kernel PCA models using a Polynomial kernel for genomic
-prediction. It evaluates different combinations of sigma, order, and degree
-parameters. Principal components are selected according to a variance-explained
-threshold, and a kernel matrix is constructed from the selected component
-scores. Predictive accuracy is evaluated using k-fold cross-validation with
-the RKHS framework implemented in the BGLR package.
+prediction. It evaluates different combinations of degree, scale, and offset
+parameters. All kernel principal components returned by the KPCA decomposition
+are used to construct a kernel matrix from the component scores. Predictive
+accuracy is evaluated using k-fold cross-validation with the RKHS framework
+implemented in the BGLR package.
 }

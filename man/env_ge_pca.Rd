@@ -11,12 +11,13 @@ env_ge_pca(
   env,
   EZ = NULL,
   CV = c("CV1", "CV2", "CV0"),
-  var_threshold = 0.01,
+  exp_var = 0.9,
   nIter = 10000,
   burnIn = 4000,
   thin = 10,
+  seed = 123,
   save_xlsx = TRUE,
-  file_name = NULL
+  file_name = "env_ge_pca.xlsx"
 )
 }
 \arguments{
@@ -29,11 +30,12 @@ Row names must correspond to genotype IDs.}
 
 \item{env}{A vector of environment labels corresponding to each phenotypic observation.}
 
-\item{EZ}{Optional matrix of fixed environmental effects. If \code{NULL}, it is created from \code{env}.}
+\item{EZ}{Optional matrix of fixed environmental effects. If NULL, it is created from env.}
 
-\item{CV}{Cross-validation scheme. One of \code{"CV1"}, \code{"CV2"}, or \code{"CV0"}.}
+\item{CV}{Cross-validation scheme. One of "CV1", "CV2", or "CV0".}
 
-\item{var_threshold}{Minimum proportion of variance explained required for a principal component to be retained. Default is 0.01.}
+\item{exp_var}{Cumulative proportion of explained variance used to select PCs.
+Default is 0.90.}
 
 \item{nIter}{Total number of iterations for the BGLR model. Default is 10000.}
 
@@ -41,40 +43,65 @@ Row names must correspond to genotype IDs.}
 
 \item{thin}{Thinning interval for the BGLR model. Default is 10.}
 
-\item{save_xlsx}{A logical value indicating whether to save results in an Excel file. Default is \code{TRUE}.}
+\item{seed}{Integer value used to set the random seed for reproducibility in
+CV1 and CV2. Different seed values generate different random partitions of
+the dataset into cross-validation folds. Default is 123.}
 
-\item{file_name}{Character string specifying the name of the Excel file. If \code{NULL}, a default name is used.}
-}
-\value{
-A data frame with the mean predictive capacity by model, CV scheme,
-environment, and number of selected PCs, accounting for the GxE interaction model.
+\item{save_xlsx}{A logical value indicating whether to save results in an Excel file.
+Default is TRUE.}
+
+\item{file_name}{Character string specifying the name of the Excel file.
+Default is "env_ge_pca.xlsx".}
 }
 \description{
 This function fits a PCA-based genomic kernel model for multi-environment
-genomic prediction using the RKHS framework implemented in BGLR. Principal
-components are selected according to a variance-explained threshold, and a
-genomic kernel is constructed from the selected component scores. The genomic
-kernel is expanded to the observation level and combined with fixed
-environmental effects and a Genotype by Environment (GxE) interaction kernel.
+genomic prediction with genotype-by-environment interaction using the RKHS
+framework implemented in the BGLR package.
 }
 \details{
 The model implemented is:
 \deqn{y = Xb + Zg + Zi + e}
-where \eqn{Xb} represents fixed environmental effects, \eqn{Zg} represents the
-main genomic effect obtained from the PCA-based genomic kernel, and \eqn{Zi}
-represents the GxE interaction effect. The GxE kernel is computed as the
-Hadamard product between the observation-level PCA genomic kernel and the
-environmental relationship matrix.
+where \eqn{Xb} represents fixed environmental effects, \eqn{Zg} represents
+the main genomic effect modeled with a PCA-derived marker matrix, and
+\eqn{Zi} represents the genotype-by-environment interaction effect.
+
+First, the SNP matrix is decomposed by principal component analysis. Then,
+the principal components are selected according to the cumulative proportion
+of explained variance.
+
+The selected PC scores are used to construct the genomic kernel:
+
+\deqn{K = \frac{XX'}{p}}
+
+where \eqn{X} is the matrix of selected PC scores and \eqn{p} is the number
+of selected components.
+
+The genotype-level kernel is expanded to the observation level using the
+genotype incidence matrix. The GxE kernel is computed as the Hadamard product
+between the observation-level genomic kernel and the environmental
+relationship matrix. Fixed environmental effects are included through the
+matrix \eqn{X}. Predictive capacity is evaluated by environment using CV1,
+CV2, or CV0 cross-validation schemes.
 }
 \examples{
 \dontrun{
 results <- env_ge_pca(
-  SNPs = X,
-  y = phen$yield,
-  IDs = phen$genotype,
-  env = phen$Env,
-  CV = "CV2"
+  SNPs = SNPs,
+  y = y,
+  IDs = IDs,
+  env = env,
+  EZ = NULL,
+  CV = "CV1",
+  exp_var = 0.90,
+  nIter = 10000,
+  burnIn = 4000,
+  thin = 10,
+  seed = 123,
+  save_xlsx = TRUE,
+  file_name = "env_ge_pca.xlsx"
 )
+
+results
 }
 
 }

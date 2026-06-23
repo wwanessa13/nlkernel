@@ -19,6 +19,7 @@ combinations(
   nIter = 10000,
   burnIn = 4000,
   thin = 10,
+  seed = 123,
   save_xlsx = TRUE,
   file_name = "comb.xlsx"
 )
@@ -51,6 +52,10 @@ combinations(
 \item{burnIn}{Number of burn-in iterations for the BGLR model. Default is 4000.}
 
 \item{thin}{Thinning interval for the BGLR model. Default is 10.}
+
+\item{seed}{Integer value used to set the random seed for reproducibility.
+Different seed values generate different random partitions of the dataset
+into cross-validation folds. Default is 123.}
 
 \item{save_xlsx}{A logical value indicating whether to save results in an Excel file. Default is TRUE.}
 

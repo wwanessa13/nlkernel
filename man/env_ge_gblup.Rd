@@ -49,16 +49,25 @@ it is automatically generated from the \code{env} vector.}
 
 \item{file_name}{Character string for the Excel file name. If \code{NULL}, a name
 is automatically generated as "gblup_CV(1, 2 or 0).xlsx". Default is \code{NULL}.}
-}
-\value{
-A dataframe containing the predictive capacity (mean Pearson correlation)
-for each environment, accounting for the GxE interaction model.
+
+\item{seed}{Integer value used to set the random seed for reproducibility in
+CV1 and CV2. Different seed values generate different random partitions of
+the dataset into cross-validation folds. Default is 123.}
 }
 \description{
 This function performs genomic prediction across multiple environments by
 accounting for main effects (Genotype and Environment) and the Genotype by
 Environment (GxE) interaction. It uses a VanRaden-based genomic relationship
 matrix and an environmental kernel to model the interaction via a Hadamard product.
+}
+\details{
+The model implemented is:
+\deqn{y = Xb + Zg + Zi + e}
+where \eqn{Xb} represents fixed environmental effects, \eqn{Zg} represents the
+main genomic effect modeled with the G matrix (Van Raden, 2008), and \eqn{Zi} represents
+the GxE interaction effect. The GxE interaction is computed as the Hadamard product
+between the observation-level genomic matrix (G) and the environmental
+relationship matrix (E).
 }
 \examples{
 \dontrun{

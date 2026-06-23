@@ -1,30 +1,26 @@
 #' Kernel PCA with Polynomial Kernel for Genomic Prediction
 #'
 #' This function fits kernel PCA models using a Polynomial kernel for genomic
-#' prediction. It evaluates different combinations of sigma, order, and degree
-#' parameters. Principal components are selected according to a variance-explained
-#' threshold, and a kernel matrix is constructed from the selected component
-#' scores. Predictive accuracy is evaluated using k-fold cross-validation with
-#' the RKHS framework implemented in the BGLR package.
+#' prediction. It evaluates different combinations of degree, scale, and offset
+#' parameters. All kernel principal components returned by the KPCA decomposition
+#' are used to construct a kernel matrix from the component scores. Predictive
+#' accuracy is evaluated using k-fold cross-validation with the RKHS framework
+#' implemented in the BGLR package.
 #'
 #' @param SNPs A numeric matrix of SNP genotypes, with individuals in rows and markers in columns.
 #' @param y A numeric vector of phenotypic values corresponding to the individuals.
-#' @param sc A numeric vector of sigma values for the Polynomial kernel. Default is 0.1 and 1.
-#' @param off A numeric vector of order values for the Polynomial kernel. Default is 0 and 1.
-#' @param dg A numeric vector of degree values for the Polynomial kernel. Default is 2 and 3.
-#' @param var_threshold Minimum proportion of variance explained required for a principal component to be retained. Default is 0.01.
+#' @param dg A numeric vector of degree values for the Polynomial kernel. Default is c(2, 3).
+#' @param sc A numeric vector of scale values for the Polynomial kernel. Default is c(0.5, 1, 2).
+#' @param off A numeric vector of offset values for the Polynomial kernel. Default is c(0, 1, 2).
 #' @param n_folds Number of folds for cross-validation. Default is 5.
 #' @param nIter Total number of iterations for the BGLR model. Default is 10000.
 #' @param burnIn Number of burn-in iterations for the BGLR model. Default is 4000.
 #' @param thin Thinning interval for the BGLR model. Default is 10.
+#' @param seed Integer value used to set the random seed for reproducibility.
+#' Different seed values generate different random partitions of the dataset
+#' into cross-validation folds. Default is 123.
 #' @param save_xlsx A logical value indicating whether to save results in an Excel file. Default is TRUE.
-#' @param file_name Character string specifying the name of the Excel file. Default is "pca_bessel.xlsx".
-#'
-#' @return A list with:
-#' \describe{
-#'   \item{results}{A data frame with the mean and standard deviation of predictive accuracy for each combination of Polynomial kernel parameters.}
-#'   \item{predictions}{A data frame with observed and predicted values for each fold and parameter combination.}
-#' }
+#' @param file_name Character string specifying the name of the Excel file. Default is "pca_polynomial.xlsx".
 #'
 #' @export
 
@@ -32,11 +28,11 @@ pca_polynomial <- function(SNPs, y,
                            dg = c(2, 3),
                            sc = c(0.5, 1, 2),
                            off = c(0, 1, 2),
-                           var_threshold = 0.01,
                            n_folds = 5,
                            nIter = 10000,
                            burnIn = 4000,
                            thin = 10,
+                           seed = 123,
                            save_xlsx = TRUE,
                            file_name = "pca_polynomial.xlsx") {
 
@@ -47,8 +43,8 @@ pca_polynomial <- function(SNPs, y,
 
   SNPs <- as.matrix(SNPs)
   storage.mode(SNPs) <- "numeric"
-  y <- as.numeric(y)
 
+  y <- as.numeric(y)
   n <- length(y)
 
   if (nrow(SNPs) != n) {
@@ -57,11 +53,11 @@ pca_polynomial <- function(SNPs, y,
 
   grid <- expand.grid(
     degree = dg,
-    scale  = sc,
+    scale = sc,
     offset = off
   )
 
-  set.seed(123)
+  set.seed(seed)
   folds <- sample(rep(1:n_folds, length.out = n))
 
   results_list <- list()
@@ -74,39 +70,41 @@ pca_polynomial <- function(SNPs, y,
     s <- grid$scale[i]
     o <- grid$offset[i]
 
-    cat("Running Degree =", d,
-        "| Scale =", s,
-        "| Offset =", o, "\n")
-
-    kpca_temp <- kpca(
-      x = SNPs,
-      kernel = "polydot",
-      kpar = list(degree = d, scale = s, offset = o),
-      features = 0
+    cat(
+      "Running Degree =", d,
+      "| Scale =", s,
+      "| Offset =", o, "\n"
     )
 
-    eig_vals <- eig(kpca_temp)
-    var_explained <- eig_vals / sum(eig_vals)
-
-    nPC <- sum(var_explained > var_threshold)
-
-    if (nPC < 2) {
-      warning(paste("Degree", d, "Scale", s, "Offset", o,
-                    "selected fewer than 2 PCs. Skipping."))
-      next
-    }
-
-    cat("Number of PCs selected:", nPC, "\n")
-
-    kpca_model <- kpca(
+    kpca_model <- kernlab::kpca(
       x = SNPs,
       kernel = "polydot",
-      kpar = list(degree = d, scale = s, offset = o),
-      features = nPC
+      kpar = list(
+        degree = d,
+        scale = s,
+        offset = o
+      ),
+      features = 0
     )
 
     embedding <- kpca_model@rotated
     embedding <- as.matrix(embedding)
+
+    nPC <- ncol(embedding)
+
+    if (is.null(nPC) || nPC < 1) {
+      warning(
+        paste(
+          "Degree", d,
+          "Scale", s,
+          "Offset", o,
+          "returned no KPCA components. Skipping."
+        )
+      )
+      next
+    }
+
+    cat("Number of PCs used:", nPC, "\n")
 
     Kmat <- tcrossprod(embedding) / ncol(embedding)
 
@@ -126,7 +124,7 @@ pca_polynomial <- function(SNPs, y,
         list(K = Kmat, model = "RKHS")
       )
 
-      fit <- BGLR(
+      fit <- BGLR::BGLR(
         y = y_na,
         ETA = ETA,
         nIter = nIter,
@@ -147,6 +145,7 @@ pca_polynomial <- function(SNPs, y,
         Degree = d,
         Scale = s,
         Offset = o,
+        nPC = nPC,
         Fold = f,
         Individual = idx_test,
         Observed = y[idx_test],
@@ -155,9 +154,11 @@ pca_polynomial <- function(SNPs, y,
     }
 
     results_list[[counter]] <- data.frame(
+      Model = "KPCA_Polynomial",
       Degree = d,
       Scale = s,
       Offset = o,
+      nPC = nPC,
       Mean_Accuracy = mean(acc_folds, na.rm = TRUE),
       SD_Accuracy = sd(acc_folds, na.rm = TRUE)
     )
@@ -167,13 +168,17 @@ pca_polynomial <- function(SNPs, y,
     counter <- counter + 1
   }
 
+  if (length(results_list) == 0) {
+    stop("No KPCA Polynomial model was fitted. No valid KPCA components were returned.")
+  }
+
   results <- do.call(rbind, results_list) |>
-    arrange(desc(Mean_Accuracy))
+    dplyr::arrange(desc(Mean_Accuracy))
 
   predictions <- do.call(rbind, predictions_list)
 
   if (save_xlsx) {
-    write_xlsx(
+    writexl::write_xlsx(
       list(
         results = results,
         predictions = predictions
@@ -182,5 +187,11 @@ pca_polynomial <- function(SNPs, y,
     )
   }
 
-  return(results)
+  return(
+    list(
+      results = results,
+      predictions = predictions,
+      folds = folds
+    )
+  )
 }

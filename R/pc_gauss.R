@@ -2,40 +2,38 @@
 #'
 #' This function fits kernel PCA models using a Gaussian kernel for genomic
 #' prediction. It evaluates different sigma values for the Gaussian kernel.
-#' Principal components are selected according to a variance-explained threshold,
-#' and a kernel matrix is constructed from the selected component scores.
-#' Predictive accuracy is evaluated using k-fold cross-validation with the RKHS
-#' framework implemented in the BGLR package.
+#' All kernel principal components returned by the KPCA decomposition are used
+#' to construct a kernel matrix from the component scores. Predictive accuracy
+#' is evaluated using k-fold cross-validation with the RKHS framework
+#' implemented in the BGLR package.
 #'
 #' @param SNPs A numeric matrix of SNP genotypes, with individuals in rows and markers in columns.
 #' @param y A numeric vector of phenotypic values corresponding to the individuals.
 #' @param sigmas A numeric vector of sigma values for the Gaussian kernel. Default is c(0.001, 0.01, 0.05, 0.1).
-#' @param var_threshold Minimum proportion of variance explained required for a principal component to be retained. Default is 0.01.
 #' @param n_folds Number of folds for cross-validation. Default is 5.
 #' @param nIter Total number of iterations for the BGLR model. Default is 10000.
 #' @param burnIn Number of burn-in iterations for the BGLR model. Default is 4000.
 #' @param thin Thinning interval for the BGLR model. Default is 10.
 #' @param save_xlsx A logical value indicating whether to save results in an Excel file. Default is TRUE.
-#' @param file_name Character string specifying the name of the Excel file. Default is "pca_laplacian.xlsx".
+#' @param file_name Character string specifying the name of the Excel file. Default is "pca_gaussian.xlsx".
 #'
 #' @return A list with:
 #' \describe{
 #'   \item{results}{A data frame with the mean and standard deviation of predictive accuracy for each sigma value.}
-#'   \item{predictions}{A list of data frames with observed and predicted values for each fold and sigma value.}
+#'   \item{predictions}{A data frame with observed and predicted values for each fold and sigma value.}
 #'   \item{folds}{A numeric vector indicating the fold assignment for each individual.}
 #' }
 #'
 #' @export
 
 pca_gaussian <- function(SNPs, y,
-                        sigmas = c(0.001, 0.01, 0.05, 0.1),
-                        var_threshold = 0.01,
-                        n_folds = 5,
-                        nIter = 10000,
-                        burnIn = 4000,
-                        thin = 10,
-                        save_xlsx = TRUE,
-                        file_name = "pca_gaussian.xlsx") {
+                         sigmas = c(0.001, 0.01, 0.05, 0.1),
+                         n_folds = 5,
+                         nIter = 10000,
+                         burnIn = 4000,
+                         thin = 10,
+                         save_xlsx = TRUE,
+                         file_name = "pca_gaussian.xlsx") {
 
   library(kernlab)
   library(BGLR)
@@ -43,8 +41,9 @@ pca_gaussian <- function(SNPs, y,
   library(writexl)
 
   SNPs <- as.matrix(SNPs)
-  y <- as.numeric(y)
+  storage.mode(SNPs) <- "numeric"
 
+  y <- as.numeric(y)
   n <- length(y)
 
   if (nrow(SNPs) != n) {
@@ -55,7 +54,7 @@ pca_gaussian <- function(SNPs, y,
   folds <- sample(rep(1:n_folds, length.out = n))
 
   results_list <- list()
-  predictions <- list()
+  predictions_list <- list()
   counter <- 1
 
   for (s in sigmas) {
@@ -64,41 +63,36 @@ pca_gaussian <- function(SNPs, y,
     cat("Sigma =", s, "\n")
     cat("====================================\n")
 
-    kpca_temp <- kpca(
+    kpca_model <- kernlab::kpca(
       x = SNPs,
       kernel = "rbfdot",
       kpar = list(sigma = s),
       features = 0
     )
 
-    eig_vals <- eig(kpca_temp)
-    var_explained <- eig_vals / sum(eig_vals)
+    embedding <- kpca_model@rotated
+    embedding <- as.matrix(embedding)
 
-    nPC <- sum(var_explained > var_threshold)
+    nPC <- ncol(embedding)
 
-    if (nPC < 2) {
-      warning(paste("Sigma", s, "selected fewer than 2 PCs. Skipping this sigma."))
+    if (is.null(nPC) || nPC < 1) {
+      warning(
+        paste(
+          "Sigma", s,
+          "returned no KPCA components. Skipping this sigma."
+        )
+      )
       next
     }
 
-    cat("Number of PCs selected:", nPC, "\n")
-
-    kpca_model <- kpca(
-      x = SNPs,
-      kernel = "rbfdot",
-      kpar = list(sigma = s),
-      features = nPC
-    )
-
-    embedding <- kpca_model@rotated
-    embedding <- as.matrix(embedding)
+    cat("Number of PCs used:", nPC, "\n")
 
     Kmat <- tcrossprod(embedding) / ncol(embedding)
 
     acc_folds <- numeric(n_folds)
     fold_predictions <- list()
 
-    for (f in 1:n_folds) {
+    for (f in seq_len(n_folds)) {
 
       cat(" Processing Fold", f, "\n")
 
@@ -111,7 +105,7 @@ pca_gaussian <- function(SNPs, y,
         list(K = Kmat, model = "RKHS")
       )
 
-      fit <- BGLR(
+      fit <- BGLR::BGLR(
         y = y_na,
         ETA = ETA,
         nIter = nIter,
@@ -129,31 +123,53 @@ pca_gaussian <- function(SNPs, y,
       )
 
       fold_predictions[[f]] <- data.frame(
-        Sigma     = s,
-        Fold      = f,
+        Model = "KPCA_Gaussian",
+        Sigma = s,
+        nPC = nPC,
+        Fold = f,
         Individual = idx_test,
-        Observed  = y[idx_test],
+        Observed = y[idx_test],
         Predicted = yhat_test
       )
     }
 
     results_list[[counter]] <- data.frame(
+      Model = "KPCA_Gaussian",
       Sigma = s,
+      nPC = nPC,
       Mean_Accuracy = mean(acc_folds, na.rm = TRUE),
       SD_Accuracy = sd(acc_folds, na.rm = TRUE)
     )
 
-    predictions[[paste0("sigma_", s)]] <- do.call(rbind, fold_predictions)
+    predictions_list[[counter]] <- do.call(rbind, fold_predictions)
 
     counter <- counter + 1
   }
 
-  results <- do.call(rbind, results_list) |>
-    arrange(desc(Mean_Accuracy))
-
-  if (save_xlsx) {
-    write_xlsx(results, file_name)
+  if (length(results_list) == 0) {
+    stop("No KPCA Gaussian model was fitted. No valid KPCA components were returned.")
   }
 
-  return(results)
+  results <- do.call(rbind, results_list) |>
+    dplyr::arrange(desc(Mean_Accuracy))
+
+  predictions <- do.call(rbind, predictions_list)
+
+  if (save_xlsx) {
+    writexl::write_xlsx(
+      list(
+        results = results,
+        predictions = predictions
+      ),
+      file_name
+    )
+  }
+
+  return(
+    list(
+      results = results,
+      predictions = predictions,
+      folds = folds
+    )
+  )
 }

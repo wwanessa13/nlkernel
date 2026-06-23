@@ -15,6 +15,7 @@ env_ge_gaussian(
   nIter = 10000,
   burnIn = 4000,
   thin = 10,
+  seed = 123,
   save_xlsx = TRUE,
   file_name = NULL
 )
@@ -46,15 +47,14 @@ Default is \code{c(0.001, 0.01, 0.05, 0.1)}.}
 
 \item{thin}{Thinning interval for the MCMC chain. Default is 10.}
 
+\item{seed}{Integer value used to set the random seed for reproducibility in
+CV1 and CV2. Different seed values generate different random partitions of
+the dataset into cross-validation folds. Default is 123.}
+
 \item{save_xlsx}{Logical. If \code{TRUE}, saves the predictive capacity results to an Excel file. Default is \code{TRUE}.}
 
 \item{file_name}{Character string for the Excel file name. If \code{NULL}, a name
 is automatically generated as "gblup_CV(1, 2 or 0).xlsx". Default is \code{NULL}.}
-}
-\value{
-A dataframe containing the predictive capacity (mean Pearson correlation)
-for each Gaussian sigma value and environment, accounting for the GxE
-interaction model.
 }
 \description{
 This function performs genomic prediction across multiple environments by
@@ -68,7 +68,7 @@ The model implemented is:
 \deqn{y = Xb + Zg + Zi + e}
 where \eqn{Xb} represents fixed environmental effects, \eqn{Zg} represents the
 main genomic effect modeled with the Gaussian kernel, and \eqn{Zi} represents
-the GxE interaction effect. The GxE kernel is computed as the Hadamard product
+the GxE interaction effect. The GxE interaction is computed as the Hadamard product
 between the observation-level Gaussian genomic kernel (G) and the environmental
 relationship matrix (E).
 }

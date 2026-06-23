@@ -12,6 +12,7 @@ gblup(
   nIter = 10000,
   burnIn = 4000,
   thin = 10,
+  seed = 123,
   save_xlsx = TRUE,
   file_name = "gblup.xlsx"
 )
@@ -31,17 +32,13 @@ gblup(
 
 \item{thin}{Thinning interval for the BGLR model. Default is 10.}
 
+\item{seed}{Integer value used to set the random seed for reproducibility.
+Different seed values generate different random partitions of the dataset
+into cross-validation folds. Default is 123.}
+
 \item{save_xlsx}{A logical value indicating whether to save results in an Excel file. Default is TRUE.}
 
 \item{file_name}{Character string specifying the name of the Excel file. Default is "gblup.xlsx".}
-}
-\value{
-A list with:
-\describe{
-\item{results}{A data frame with the mean and standard deviation of predictive accuracy.}
-\item{predictions}{A data frame with observed and predicted values for each fold.}
-\item{folds}{A numeric vector indicating the fold assignment for each individual.}
-}
 }
 \description{
 This function fits a Genomic Best Linear Unbiased Prediction (GBLUP) model

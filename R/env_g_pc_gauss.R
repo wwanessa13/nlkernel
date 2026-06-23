@@ -1,13 +1,8 @@
 #' Kernel PCA with Gaussian Kernel for Multi-Environment Genomic Prediction
 #'
 #' This function fits kernel PCA models using a Gaussian kernel for
-#' multi-environment genomic prediction. It evaluates different sigma values.
-#' Kernel principal components are selected according to a variance-explained
-#' threshold, and a genomic kernel is constructed from the selected component
-#' scores. The kernel is expanded to the observation level and combined with
-#' fixed environmental effects. Predictive capacity is evaluated by environment
-#' using CV1, CV2, or CV0 cross-validation schemes within the RKHS framework
-#' implemented in BGLR.
+#' multi-environment genomic prediction. It evaluates different sigma values
+#' and uses the RKHS framework implemented in the BGLR package.
 #'
 #' @param SNPs A numeric matrix of SNP genotypes, with genotypes in rows and markers in columns.
 #' Row names must correspond to genotype IDs.
@@ -16,38 +11,93 @@
 #' @param env A vector of environment labels corresponding to each phenotypic observation.
 #' @param EZ Optional matrix of fixed environmental effects. If NULL, it is created from env.
 #' @param CV Cross-validation scheme. One of "CV1", "CV2", or "CV0".
-#' @param sg A numeric vector of sigma values for the Gaussian kernel. Default is c(0.001, 0.01, 0.05, 0.1).
-#' @param var_threshold Minimum proportion of variance explained required for a principal component to be retained. Default is 0.01.
+#' @param sg A numeric vector of sigma values for the Gaussian kernel.
+#' Default is c(0.001, 0.01, 0.05, 0.1).
+#' @param exp_var Cumulative proportion of explained variance used to select kernel PCs.
+#' Default is 0.90.
 #' @param nIter Total number of iterations for the BGLR model. Default is 10000.
 #' @param burnIn Number of burn-in iterations for the BGLR model. Default is 4000.
 #' @param thin Thinning interval for the BGLR model. Default is 10.
-#' @param save_xlsx A logical value indicating whether to save results in an Excel file. Default is TRUE.
-#' @param file_name Character string specifying the name of the Excel file. If NULL, a default name is used.
+#' @param seed Integer value used to set the random seed for reproducibility in
+#' CV1 and CV2. Different seed values generate different random partitions of
+#' the dataset into cross-validation folds. Default is 123.
+#' @param save_xlsx A logical value indicating whether to save results in an Excel file.
+#' Default is TRUE.
+#' @param file_name Character string specifying the name of the Excel file.
+#' Default is "env_g_pca_gaussian.xlsx".
 #'
-#' @return A data frame with the mean predictive capacity by model, CV scheme,
-#' sigma value, number of selected PCs, and environment.
+#' @details
+#' The model implemented is:
+#' \deqn{y = Xb + Zg + e}
+#' where \eqn{Xb} represents fixed environmental effects and \eqn{Zg} represents
+#' the main genomic effect modeled with a Gaussian kernel PCA-derived marker
+#' matrix. First, the SNP matrix is transformed using kernel PCA with a Gaussian
+#' kernel. Then, the kernel principal components are selected according to the
+#' cumulative proportion of explained variance.
+#'
+#' The selected kernel PC scores are used to construct the genomic kernel:
+#'
+#' \deqn{K = \frac{XX'}{p}}
+#'
+#' where \eqn{X} is the matrix of selected kernel PC scores and \eqn{p} is the
+#' number of selected components.
+#'
+#' The genotype-level kernel is expanded to the observation level using the
+#' genotype incidence matrix. Fixed environmental effects are included through
+#' the matrix \eqn{X}. Predictive capacity is evaluated by environment using
+#' CV1, CV2, or CV0 cross-validation schemes.
+#'
+#' @examples
+#' \dontrun{
+#' results <- env_g_pca_gaussian(
+#'   SNPs = SNPs,
+#'   y = y,
+#'   IDs = IDs,
+#'   env = env,
+#'   EZ = NULL,
+#'   CV = "CV1",
+#'   sg = c(0.001, 0.01, 0.05, 0.1),
+#'   exp_var = 0.90,
+#'   nIter = 10000,
+#'   burnIn = 4000,
+#'   thin = 10,
+#'   seed = 123,
+#'   save_xlsx = TRUE,
+#'   file_name = "env_g_pca_gaussian.xlsx"
+#' )
+#'
+#' results
+#' }
 #'
 #' @export
 
 env_g_pca_gaussian <- function(SNPs, y, IDs, env,
-                                EZ = NULL,
-                                CV = c("CV1", "CV2", "CV0"),
-                                sg = c(0.001, 0.01, 0.05, 0.1),
-                                var_threshold = 0.01,
-                                nIter = 10000,
-                                burnIn = 4000,
-                                thin = 10,
-                                save_xlsx = TRUE,
-                                file_name = NULL) {
+                               EZ = NULL,
+                               CV = c("CV1", "CV2", "CV0"),
+                               sg = c(0.001, 0.01, 0.05, 0.1),
+                               exp_var = 0.90,
+                               nIter = 10000,
+                               burnIn = 4000,
+                               thin = 10,
+                               seed = 123,
+                               save_xlsx = TRUE,
+                               file_name = "env_g_pca_gaussian.xlsx") {
+
+  library(kernlab)
+  library(BGLR)
+  library(dplyr)
+  library(writexl)
 
   CV <- match.arg(CV)
-  set.seed(1)
 
   SNPs <- as.matrix(SNPs)
+
   storage.mode(SNPs) <- "numeric"
 
   y <- as.numeric(y)
+
   IDs <- as.character(IDs)
+
   env <- as.character(env)
 
   if (length(y) != length(IDs) || length(y) != length(env)) {
@@ -62,8 +112,14 @@ env_g_pca_gaussian <- function(SNPs, y, IDs, env,
     stop("Some genotype IDs are not present in rownames(SNPs).")
   }
 
+  if (exp_var <= 0 || exp_var > 1) {
+    stop("exp_var must be greater than 0 and less than or equal to 1.")
+  }
+
   n <- length(y)
+
   uIDs <- unique(IDs)
+
   uenv <- unique(env)
 
   if (is.null(EZ)) {
@@ -84,22 +140,29 @@ env_g_pca_gaussian <- function(SNPs, y, IDs, env,
   )
 
   if (CV == "CV1") {
+    set.seed(seed)
 
     n_folds <- 5
+
     fold_id <- rep(1:n_folds, length.out = length(uIDs))
+
     fold_id <- sample(fold_id)
 
     names(fold_id) <- uIDs
+
     Y$Fold <- fold_id[Y$ID]
   }
 
   if (CV == "CV2") {
+    set.seed(seed)
 
     n_folds <- 5
+
     Y$Fold <- NA
 
     for (id in uIDs) {
       idx <- which(Y$ID == id)
+
       ni <- length(idx)
 
       Y$Fold[idx] <- sample(
@@ -111,20 +174,23 @@ env_g_pca_gaussian <- function(SNPs, y, IDs, env,
   }
 
   if (CV == "CV0") {
-
     n_folds_env <- length(uenv)
+
     fold_env <- sample(1:n_folds_env, size = n_folds_env)
 
     names(fold_env) <- uenv
+
     Y$Fold <- fold_env[Y$Env]
   }
 
   folds_run <- sort(unique(Y$Fold))
 
   IDs_factor <- factor(IDs, levels = rownames(SNPs))
+
   GZ <- model.matrix(~ IDs_factor - 1)
 
   GDec_list <- list()
+
   counter <- 1
 
   for (sigma_i in sg) {
@@ -134,43 +200,67 @@ env_g_pca_gaussian <- function(SNPs, y, IDs, env,
       sigma_i, "\n"
     )
 
-    kpca_temp <- kernlab::kpca(
+    kpca_model <- kpca(
       x = SNPs,
       kernel = "rbfdot",
       kpar = list(sigma = sigma_i),
       features = 0
     )
 
-    eig_vals <- kernlab::eig(kpca_temp)
-    var_explained <- eig_vals / sum(eig_vals)
+    embedding <- kpca_model@rotated
 
-    nPC <- sum(var_explained > var_threshold)
+    embedding <- as.matrix(embedding)
 
-    if (nPC < 2) {
+    eig <- kpca_model@eig
+
+    eig <- as.numeric(eig)
+
+    eig <- eig[eig > 0]
+
+    if (length(eig) < 1 || ncol(embedding) < 1) {
       warning(
         paste(
           "Sigma", sigma_i,
-          "selected fewer than 2 PCs. Skipping this sigma."
+          "returned no KPCA components. Skipping this sigma."
         )
       )
       next
     }
 
-    cat("Number of PCs selected:", nPC, "\n")
+    n_available <- min(length(eig), ncol(embedding))
 
-    kpca_model <- kernlab::kpca(
-      x = SNPs,
-      kernel = "laplacedot",
-      kpar = list(sigma = sigma_i),
-      features = nPC
-    )
+    eig <- eig[1:n_available]
 
-    embedding <- kpca_model@rotated
-    embedding <- as.matrix(embedding)
+    embedding <- embedding[, 1:n_available, drop = FALSE]
+
+    prop_var <- eig / sum(eig)
+
+    cum_var <- cumsum(prop_var)
+
+    nPC <- which(cum_var >= exp_var)[1]
+
+    if (is.na(nPC) || nPC < 1) {
+      warning(
+        paste(
+          "Sigma", sigma_i,
+          "did not reach the specified explained variance. Skipping this sigma."
+        )
+      )
+      next
+    }
+
+    embedding <- embedding[, 1:nPC, drop = FALSE]
+
+    cat("Variance threshold:", exp_var, "\n")
+
+    cat("Number of PCs used:", nPC, "\n")
+
+    cat("Cumulative variance explained:", round(cum_var[nPC], 4), "\n")
 
     Gn <- tcrossprod(embedding) / ncol(embedding)
 
     rownames(Gn) <- rownames(SNPs)
+
     colnames(Gn) <- rownames(SNPs)
 
     G <- GZ %*% Gn %*% t(GZ)
@@ -181,7 +271,9 @@ env_g_pca_gaussian <- function(SNPs, y, IDs, env,
 
     GDec_list[[counter]] <- list(
       sigma = sigma_i,
+      exp_var = exp_var,
       nPC = nPC,
+      cumulative_variance = cum_var[nPC],
       values = values,
       vectors = GDec$vectors
     )
@@ -190,7 +282,7 @@ env_g_pca_gaussian <- function(SNPs, y, IDs, env,
   }
 
   if (length(GDec_list) == 0) {
-    stop("No KPCA Gaussian model was fitted. All sigma values selected fewer than 2 PCs.")
+    stop("No KPCA Gaussian model was fitted. No valid KPCA components were returned.")
   }
 
   names(GDec_list) <- vapply(GDec_list, function(x) {
@@ -225,9 +317,10 @@ env_g_pca_gaussian <- function(SNPs, y, IDs, env,
       testing <- which(Y$Fold == fold)
 
       yNA <- y
+
       yNA[testing] <- NA
 
-      fm <- BGLR::BGLR(
+      fm <- BGLR(
         y = yNA,
         ETA = ETA_i,
         nIter = nIter,
@@ -241,6 +334,7 @@ env_g_pca_gaussian <- function(SNPs, y, IDs, env,
       for (a in uenv) {
 
         idx_env <- which(env == a)
+
         join <- intersect(idx_env, testing)
 
         if (length(join) > 1) {
@@ -263,7 +357,9 @@ env_g_pca_gaussian <- function(SNPs, y, IDs, env,
               Model = "KPCA_Gaussian",
               CV = CV,
               Sigma = GDec_i$sigma,
+              Variance_Threshold = GDec_i$exp_var,
               nPC = GDec_i$nPC,
+              Cumulative_Variance = GDec_i$cumulative_variance,
               Fold = fold,
               Environment = a,
               Predictive_Capacity = cor_val
@@ -275,24 +371,21 @@ env_g_pca_gaussian <- function(SNPs, y, IDs, env,
 
   df_raw <- do.call(rbind, list_metrics)
 
-  df_metrics <- aggregate(
-    Predictive_Capacity ~ Model + CV + Sigma + nPC + Environment,
+  results <- aggregate(
+    Predictive_Capacity ~ Model + CV + Sigma + Variance_Threshold +
+      nPC + Cumulative_Variance + Environment,
     data = df_raw,
     FUN = function(x) mean(x, na.rm = TRUE)
   )
 
-  names(df_metrics)[names(df_metrics) == "Predictive_Capacity"] <- "pred"
+  names(results)[names(results) == "Predictive_Capacity"] <- "pred"
 
-  df_metrics <- df_metrics[order(-df_metrics$pred), ]
+  results <- results |>
+    arrange(desc(pred))
 
   if (save_xlsx) {
-
-    if (is.null(file_name)) {
-      file_name <- paste0("KPCA_Gaussian_", CV, ".xlsx")
-    }
-
-    writexl::write_xlsx(df_metrics, file_name)
+    write_xlsx(results, file_name)
   }
 
-  return(df_metrics)
+  return(results)
 }

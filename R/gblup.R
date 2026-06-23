@@ -12,15 +12,11 @@
 #' @param nIter Total number of iterations for the BGLR model. Default is 10000.
 #' @param burnIn Number of burn-in iterations for the BGLR model. Default is 4000.
 #' @param thin Thinning interval for the BGLR model. Default is 10.
+#' @param seed Integer value used to set the random seed for reproducibility.
+#' Different seed values generate different random partitions of the dataset
+#' into cross-validation folds. Default is 123.
 #' @param save_xlsx A logical value indicating whether to save results in an Excel file. Default is TRUE.
 #' @param file_name Character string specifying the name of the Excel file. Default is "gblup.xlsx".
-#'
-#' @return A list with:
-#' \describe{
-#'   \item{results}{A data frame with the mean and standard deviation of predictive accuracy.}
-#'   \item{predictions}{A data frame with observed and predicted values for each fold.}
-#'   \item{folds}{A numeric vector indicating the fold assignment for each individual.}
-#' }
 #'
 #' @export
 
@@ -30,6 +26,7 @@ gblup <- function(SNPs, y,
                   nIter = 10000,
                   burnIn = 4000,
                   thin = 10,
+                  seed = 123,
                   save_xlsx = TRUE,
                   file_name = "gblup.xlsx") {
 
@@ -54,7 +51,7 @@ gblup <- function(SNPs, y,
     maf = 0.05
   )
 
-  set.seed(123)
+  set.seed(seed)
   folds <- sample(rep(1:n_folds, length.out = n))
 
   acc_folds <- numeric(n_folds)
