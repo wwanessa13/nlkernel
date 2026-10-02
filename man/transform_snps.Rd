@@ -12,72 +12,89 @@ transform_snps(
   polynomial_degree = 2,
   polynomial_scale = 2,
   polynomial_offset = 2,
+  anova_sigma = 0.01,
+  anova_degree = 2,
+  tanh_scale = 0.01,
+  tanh_offset = 1,
   bessel_sigma = 0.1,
   bessel_order = 1,
   bessel_degree = 2,
-  var_threshold = 0.01,
-  nPC = NULL,
-  scale_pca = TRUE,
+  ploidy = 2,
   save_transform = FALSE,
   file_name = "snp_transform.rds"
 )
 }
 \arguments{
-\item{SNPs}{A numeric matrix or data frame of SNP genotypes, with individuals in rows and markers in columns.}
+\item{SNPs}{A numeric matrix or data frame of SNP genotypes, with
+individuals in rows and markers in columns.}
 
-\item{model}{Character vector indicating the transformation method or methods. Options are
-"gblup", "pca", "gaussian", "laplacian", "polynomial", "bessel",
-"pca_gaussian", "pca_laplacian", "pca_polynomial", and "pca_bessel".
-If more than one model is provided, the function returns a separate matrix for each model.}
+\item{model}{Character vector indicating the transformation method or
+methods. Options are "gblup", "gaussian", "laplacian", "polynomial",
+"anova", "tanh", and "bessel".
+If more than one model is provided, the function returns a separate
+matrix for each model.}
 
-\item{gaussian_sigma}{Sigma parameter for the Gaussian kernel. Default is 0.001.}
+\item{gaussian_sigma}{Sigma parameter for the Gaussian kernel.
+Default is 0.001.}
 
-\item{laplacian_sigma}{Sigma parameter for the Laplacian kernel. Default is 0.01.}
+\item{laplacian_sigma}{Sigma parameter for the Laplacian kernel.
+Default is 0.01.}
 
-\item{polynomial_degree}{Degree parameter for the polynomial kernel. Default is 2.}
+\item{polynomial_degree}{Degree parameter for the polynomial kernel.
+Default is 2.}
 
-\item{polynomial_scale}{Scale parameter for the polynomial kernel. Default is 2.}
+\item{polynomial_scale}{Scale parameter for the polynomial kernel.
+Default is 2.}
 
-\item{polynomial_offset}{Offset parameter for the polynomial kernel. Default is 2.}
+\item{polynomial_offset}{Offset parameter for the polynomial kernel.
+Default is 2.}
 
-\item{bessel_sigma}{Sigma parameter for the Bessel kernel. Default is 0.1.}
+\item{anova_sigma}{Sigma parameter for the ANOVA kernel.
+Default is 0.01.}
 
-\item{bessel_order}{Order parameter for the Bessel kernel. Default is 1.}
+\item{anova_degree}{Degree parameter for the ANOVA kernel.
+Default is 2.}
 
-\item{bessel_degree}{Degree parameter for the Bessel kernel. Default is 2.}
+\item{tanh_scale}{Scale parameter for the hyperbolic tangent kernel.
+Default is 0.01.}
 
-\item{var_threshold}{Minimum proportion of variance explained required for retaining PCs. Default is 0.01.}
+\item{tanh_offset}{Offset parameter for the hyperbolic tangent kernel.
+Default is 1.}
 
-\item{nPC}{Optional number of principal components to retain. If NULL, PCs are selected using var_threshold.}
+\item{bessel_sigma}{Sigma parameter for the Bessel kernel.
+Default is 0.1.}
 
-\item{scale_pca}{Logical value indicating whether SNPs should be scaled before PCA. Default is TRUE.}
+\item{bessel_order}{Order parameter for the Bessel kernel.
+Default is 1.}
 
-\item{save_transform}{Logical value indicating whether to save the transformed object as an RDS file. Default is FALSE.}
+\item{bessel_degree}{Degree parameter for the Bessel kernel.
+Default is 2.}
 
-\item{file_name}{Character string specifying the name of the RDS file. Default is "snp_transform.rds".}
+\item{save_transform}{Logical value indicating whether to save the
+transformed object as an RDS file. Default is FALSE.}
+
+\item{file_name}{Character string specifying the name of the RDS file.
+Default is "snp_transform.rds".}
 }
 \value{
-A list containing the transformed SNP matrices or kernel matrices, selected model(s),
-PCA/kernel PCA objects when applicable, selected PCs, hyperparameters, and original SNP matrix.
+A list containing the transformed SNP matrices or kernel matrices,
+selected model(s), kernel objects, hyperparameters, and original SNP matrix.
 }
 \description{
-This function transforms a SNP marker matrix using one or more genomic
-relationship, nonlinear kernel, PCA, or kernel PCA approaches. It does not
-require phenotypic values and does not fit a BGLR model.
+This function transforms a SNP marker matrix using genomic relationship
+and nonlinear kernel approaches. It does not require phenotypic values
+and does not fit a BGLR model.
 }
 \examples{
 \dontrun{
 obj <- transform_snps(
   SNPs = SNPs,
-  model = c("laplacian", "bessel"),
-  laplacian_sigma = 0.01,
-  bessel_sigma = 0.1,
-  bessel_order = 1,
-  bessel_degree = 2
+  model = c("anova", "tanh", "gaussian")
 )
 
-K_laplacian <- obj$K$laplacian
-K_bessel <- obj$K$bessel
+K_anova <- obj$K$anova
+K_tanh <- obj$K$tanh
+K_gaussian <- obj$K$gaussian
 }
 
 }

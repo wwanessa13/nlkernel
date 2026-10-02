@@ -15,10 +15,14 @@ env_ge_combinations(
   polynomial_scale = 2,
   polynomial_offset = 2,
   laplacian_sigma = 0.01,
+  anova_sigma = 0.1,
+  anova_degree = 2,
   bessel_sigma = 0.1,
   bessel_order = 1,
   bessel_degree = 2,
   gaussian_sigma = 0.001,
+  tanh_scale = 1,
+  tanh_offset = 1,
   ploidy = 2,
   nIter = 10000,
   burnIn = 4000,
@@ -29,8 +33,8 @@ env_ge_combinations(
 )
 }
 \arguments{
-\item{SNPs}{A numeric matrix of SNP genotypes, with genotypes in rows and markers in columns.
-Row names must correspond to genotype IDs.}
+\item{SNPs}{A numeric matrix of SNP genotypes, with genotypes in rows and
+markers in columns. Row names must correspond to genotype IDs.}
 
 \item{y}{A numeric vector of phenotypic values.}
 
@@ -38,17 +42,22 @@ Row names must correspond to genotype IDs.}
 
 \item{env}{A vector of environment labels corresponding to each phenotypic observation.}
 
-\item{EZ}{Optional matrix of fixed environmental effects. If \code{NULL}, it is created from \code{env}.}
+\item{EZ}{Optional matrix of fixed environmental effects. If NULL, it is
+created from env.}
 
-\item{CV}{Cross-validation scheme. One of \code{"CV1"}, \code{"CV2"}, or \code{"CV0"}.}
+\item{CV}{Cross-validation scheme. One of "CV1", "CV2", or "CV0".}
 
-\item{polynomial_degree}{Degree parameter for the polynomialnomial kernel. Default is 2.}
+\item{polynomial_degree}{Degree parameter for the polynomial kernel. Default is 2.}
 
-\item{polynomial_scale}{Scale parameter for the polynomialnomial kernel. Default is 2.}
+\item{polynomial_scale}{Scale parameter for the polynomial kernel. Default is 2.}
 
-\item{polynomial_offset}{Offset parameter for the polynomialnomial kernel. Default is 2.}
+\item{polynomial_offset}{Offset parameter for the polynomial kernel. Default is 2.}
 
 \item{laplacian_sigma}{Sigma parameter for the Laplacian kernel. Default is 0.01.}
+
+\item{anova_sigma}{Sigma parameter for the ANOVA kernel. Default is 0.1.}
+
+\item{anova_degree}{Degree parameter for the ANOVA kernel. Default is 2.}
 
 \item{bessel_sigma}{Sigma parameter for the Bessel kernel. Default is 0.1.}
 
@@ -58,40 +67,39 @@ Row names must correspond to genotype IDs.}
 
 \item{gaussian_sigma}{Sigma parameter for the Gaussian/RBF kernel. Default is 0.001.}
 
-\item{ploidy}{Ploidy level used in \code{AGHmatrix::Gmatrix}. Default is 2.}
+\item{tanh_scale}{Scale parameter for the hyperbolic tangent kernel. Default is 1.}
+
+\item{tanh_offset}{Offset parameter for the hyperbolic tangent kernel. Default is 1.}
+
+\item{ploidy}{Ploidy level used in AGHmatrix::Gmatrix. Default is 2.}
 
 \item{nIter}{Total number of iterations for the BGLR model. Default is 10000.}
 
 \item{burnIn}{Number of burn-in iterations for the BGLR model. Default is 4000.}
 
-\item{thin}{Thinning interval for the BGLR model. Default is 10.}
+\item{thin}{Thinning interval for the MCMC chain. Default is 10.}
 
 \item{seed}{Integer value used to set the random seed for reproducibility in
-CV1 and CV2. Different seed values generate different random partitions of
-the dataset into cross-validation folds. Default is 123.}
+CV1 and CV2. Default is 123.}
 
-\item{save_xlsx}{A logical value indicating whether to save results in an Excel file. Default is \code{TRUE}.}
+\item{save_xlsx}{Logical. If TRUE, saves results in an Excel file.}
 
-\item{file_name}{Character string specifying the name of the Excel file. If \code{NULL}, a default name is used.}
+\item{file_name}{Character string specifying the Excel file name. If NULL,
+a default name is used.}
+}
+\value{
+A data frame with the mean predictive capacity by kernel combination,
+CV scheme, and environment.
 }
 \description{
 This function fits combined kernel models for multi-environment genomic
 prediction using the RKHS framework implemented in the BGLR package. It
 evaluates pairwise combinations of nonlinear kernels and GBLUP, accounting
 for fixed environmental effects, main genomic effects, and Genotype by
-Environment (GxE) interaction effects. For each genomic kernel, the GxE
-kernel is computed as the Hadamard product between the observation-level
-genomic kernel and the environmental relationship matrix.
+Environment (GxE) interaction effects.
 }
-\examples{
-\dontrun{
-results <- env_ge_comb(
-  SNPs = X,
-  y = phen$yield,
-  IDs = phen$genotype,
-  env = phen$Env,
-  CV = "CV2"
-)
-}
-
+\details{
+For each genomic kernel, the GxE kernel is computed as the Hadamard product
+between the observation-level genomic kernel and the environmental
+relationship matrix.
 }

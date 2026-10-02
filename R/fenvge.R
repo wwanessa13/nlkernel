@@ -690,17 +690,9 @@ train_final_multige <- function(
     # MAIN GENOMIC EFFECT
     # ----------------------------------------------------------
 
-    ETA[
-      [paste0(
-        model[i],
-        "_G"
-      )]
-    ] <- list(
-
+    ETA[[paste0(model[i], "_G")]] <- list(
       V = genomic_decompositions[[i]]$vectors,
-
       d = genomic_decompositions[[i]]$values,
-
       model = "RKHS"
     )
 
@@ -708,17 +700,9 @@ train_final_multige <- function(
     # GxE EFFECT
     # ----------------------------------------------------------
 
-    ETA[
-      [paste0(
-        model[i],
-        "_GxE"
-      )]
-    ] <- list(
-
+    ETA[[paste0(model[i],"_GxE")]] <- list(
       V = gxe_decompositions[[i]]$vectors,
-
       d = gxe_decompositions[[i]]$values,
-
       model = "RKHS"
     )
   }

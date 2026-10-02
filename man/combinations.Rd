@@ -10,11 +10,15 @@ combinations(
   polynomial_degree = 2,
   polynomial_scale = 2,
   polynomial_offset = 2,
+  anova_sigma = 0.1,
+  anova_degree = 2,
   laplacian_sigma = 0.01,
   bessel_sigma = 0.1,
   bessel_order = 1,
   bessel_degree = 2,
   gaussian_sigma = 0.001,
+  tanh_scale = 0.01,
+  tanh_offset = 0,
   n_folds = 5,
   nIter = 10000,
   burnIn = 4000,
@@ -25,49 +29,72 @@ combinations(
 )
 }
 \arguments{
-\item{SNPs}{A numeric matrix of SNP genotypes, with individuals in rows and markers in columns.}
+\item{SNPs}{A numeric matrix of SNP genotypes, with individuals in rows
+and markers in columns.}
 
-\item{y}{A numeric vector of phenotypic values corresponding to the individuals.}
+\item{y}{A numeric vector of phenotypic values corresponding to the
+individuals.}
 
-\item{polynomial_degree}{Degree parameter for the polynomialnomial kernel. Default is 2.}
+\item{polynomial_degree}{Degree parameter for the polynomial kernel.
+Default is 2.}
 
-\item{polynomial_scale}{Scale parameter for the polynomialnomial kernel. Default is 2.}
+\item{polynomial_scale}{Scale parameter for the polynomial kernel.
+Default is 2.}
 
-\item{polynomial_offset}{Offset parameter for the polynomialnomial kernel. Default is 2.}
+\item{polynomial_offset}{Offset parameter for the polynomial kernel.
+Default is 2.}
 
-\item{laplacian_sigma}{Sigma parameter for the Laplacian kernel. Default is 0.01.}
+\item{anova_sigma}{Sigma parameter for the ANOVA kernel.
+Default is 0.1.}
 
-\item{bessel_sigma}{Sigma parameter for the Bessel kernel. Default is 0.1.}
+\item{anova_degree}{Degree parameter for the ANOVA kernel.
+Default is 2.}
 
-\item{bessel_order}{Order parameter for the Bessel kernel. Default is 1.}
+\item{laplacian_sigma}{Sigma parameter for the Laplacian kernel.
+Default is 0.01.}
 
-\item{bessel_degree}{Degree parameter for the Bessel kernel. Default is 2.}
+\item{bessel_sigma}{Sigma parameter for the Bessel kernel.
+Default is 0.1.}
 
-\item{gaussian_sigma}{Sigma parameter for the Gaussian/RBF kernel. Default is 0.001.}
+\item{bessel_order}{Order parameter for the Bessel kernel.
+Default is 1.}
+
+\item{bessel_degree}{Degree parameter for the Bessel kernel.
+Default is 2.}
+
+\item{gaussian_sigma}{Sigma parameter for the Gaussian/RBF kernel.
+Default is 0.001.}
+
+\item{tanh_scale}{Scale parameter for the Tanh kernel.
+Default is 0.01.}
+
+\item{tanh_offset}{Offset parameter for the Tanh kernel.
+Default is 0.}
 
 \item{n_folds}{Number of folds for cross-validation. Default is 5.}
 
-\item{nIter}{Total number of iterations for the BGLR model. Default is 10000.}
+\item{nIter}{Total number of iterations for the BGLR model.
+Default is 10000.}
 
-\item{burnIn}{Number of burn-in iterations for the BGLR model. Default is 4000.}
+\item{burnIn}{Number of burn-in iterations for the BGLR model.
+Default is 4000.}
 
-\item{thin}{Thinning interval for the BGLR model. Default is 10.}
+\item{thin}{Thinning interval for the BGLR model.
+Default is 10.}
 
 \item{seed}{Integer value used to set the random seed for reproducibility.
 Different seed values generate different random partitions of the dataset
 into cross-validation folds. Default is 123.}
 
-\item{save_xlsx}{A logical value indicating whether to save results in an Excel file. Default is TRUE.}
+\item{save_xlsx}{A logical value indicating whether to save results in an
+Excel file. Default is TRUE.}
 
-\item{file_name}{Character string specifying the name of the Excel file. Default is "comb.xlsx".}
+\item{file_name}{Character string specifying the name of the Excel file.
+Default is "comb.xlsx".}
 }
 \value{
-A list with:
-\describe{
-\item{results}{A data frame with the mean and standard deviation of predictive accuracy for each kernel combination.}
-\item{predictions}{A list of data frames with observed and predicted values for each fold and kernel combination.}
-\item{folds}{A numeric vector indicating the fold assignment for each individual.}
-}
+A data frame with the mean and standard deviation of predictive
+accuracy for each kernel combination.
 }
 \description{
 This function fits combined kernel models for genomic prediction using the

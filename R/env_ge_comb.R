@@ -825,25 +825,17 @@ env_ge_combinations <- function(
         # STORE RESULTS
         # ------------------------------------------------------
 
-        list_metrics[
-          [length(list_metrics) + 1]
-        ] <- data.frame(
-
+        list_metrics[[length(list_metrics) + 1]] <- data.frame(
           Model =
             "Combined_Kernels_GxE",
-
           CV =
             CV,
-
           Kernel =
             kname,
-
           Fold =
             fold,
-
           Environment =
             a,
-
           Predictive_Capacity =
             cor_val
         )

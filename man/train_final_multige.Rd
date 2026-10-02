@@ -16,12 +16,13 @@ train_final_multige(
   polynomial_degree = 2,
   polynomial_scale = 2,
   polynomial_offset = 2,
+  anova_sigma = 0.1,
+  anova_degree = 2,
+  tanh_scale = 1,
+  tanh_offset = 1,
   bessel_sigma = 0.1,
   bessel_order = 1,
   bessel_degree = 2,
-  var_threshold = 0.01,
-  nPC = NULL,
-  scale_pca = TRUE,
   ploidy = 2,
   maf = 0.05,
   nIter = 10000,
@@ -32,62 +33,76 @@ train_final_multige(
 )
 }
 \arguments{
-\item{SNPs}{A numeric matrix or data frame of SNP genotypes, with genotypes in rows
-and markers in columns. Row names must correspond to genotype IDs.}
+\item{SNPs}{A numeric matrix or data frame of SNP genotypes, with genotypes
+in rows and markers in columns. Row names must correspond to genotype IDs.}
 
 \item{y}{A numeric vector of phenotypic values.}
 
-\item{IDs}{A character vector indicating the genotype identity for each observation in y.}
+\item{IDs}{A character vector indicating the genotype identity for each
+observation in y.}
 
-\item{env}{A character vector indicating the environment for each observation in y.}
+\item{env}{A character vector indicating the environment for each
+observation in y.}
 
-\item{EZ}{Optional incidence matrix for fixed environmental effects. If NULL,
-it is automatically generated from env.}
+\item{EZ}{Optional incidence matrix for fixed environmental effects.
+If NULL, it is automatically generated from env.}
 
-\item{model}{A character vector indicating the model or models to fit. Options are
-"gblup", "pca", "gaussian", "laplacian", "polynomial", "bessel",
-"pca_gaussian", "pca_laplacian", "pca_polynomial", and "pca_bessel".
-If more than one model is provided, they are fitted as combined kernels.}
+\item{model}{A character vector indicating the genomic kernel or kernels
+to fit. Options are "gblup", "gaussian", "laplacian", "polynomial",
+"anova", "tanh" and "bessel". If more than one model is provided,
+they are fitted as combined kernels.}
 
-\item{gaussian_sigma}{Sigma parameter for the Gaussian kernel. Default is 0.001.}
+\item{gaussian_sigma}{Sigma parameter for the Gaussian/RBF kernel.
+Default is 0.001.}
 
-\item{laplacian_sigma}{Sigma parameter for the Laplacian kernel. Default is 0.01.}
+\item{laplacian_sigma}{Sigma parameter for the Laplacian kernel.
+Default is 0.01.}
 
-\item{polynomial_degree}{Degree parameter for the polynomial kernel. Default is 2.}
-
-\item{polynomial_scale}{Scale parameter for the polynomial kernel. Default is 2.}
-
-\item{polynomial_offset}{Offset parameter for the polynomial kernel. Default is 2.}
-
-\item{bessel_sigma}{Sigma parameter for the Bessel kernel. Default is 0.1.}
-
-\item{bessel_order}{Order parameter for the Bessel kernel. Default is 1.}
-
-\item{bessel_degree}{Degree parameter for the Bessel kernel. Default is 2.}
-
-\item{var_threshold}{Minimum proportion of variance explained required for a principal
-component to be retained in PCA or kernel PCA. Default is 0.01.}
-
-\item{nPC}{Optional number of principal components to retain. If NULL, the number
-of PCs is selected using var_threshold.}
-
-\item{scale_pca}{Logical value indicating whether SNPs should be scaled before PCA.
-Default is TRUE.}
-
-\item{ploidy}{Integer. Ploidy level used in the VanRaden genomic relationship matrix.
+\item{polynomial_degree}{Degree parameter for the Polynomial kernel.
 Default is 2.}
 
-\item{maf}{Numeric. Minor allele frequency threshold used by AGHmatrix for GBLUP.
-Default is 0.05.}
+\item{polynomial_scale}{Scale parameter for the Polynomial kernel.
+Default is 2.}
 
-\item{nIter}{Total number of iterations for the BGLR Gibbs sampler. Default is 10000.}
+\item{polynomial_offset}{Offset parameter for the Polynomial kernel.
+Default is 2.}
+
+\item{anova_sigma}{Sigma parameter for the ANOVA kernel.
+Default is 0.1.}
+
+\item{anova_degree}{Degree parameter for the ANOVA kernel.
+Default is 2.}
+
+\item{tanh_scale}{Scale parameter for the hyperbolic tangent kernel.
+Default is 1.}
+
+\item{tanh_offset}{Offset parameter for the hyperbolic tangent kernel.
+Default is 1.}
+
+\item{bessel_sigma}{Sigma parameter for the Bessel kernel.
+Default is 0.1.}
+
+\item{bessel_order}{Order parameter for the Bessel kernel.
+Default is 1.}
+
+\item{bessel_degree}{Degree parameter for the Bessel kernel.
+Default is 2.}
+
+\item{ploidy}{Integer. Ploidy level used in the VanRaden genomic
+relationship matrix. Default is 2.}
+
+\item{maf}{Numeric. Minor allele frequency threshold used by AGHmatrix
+for GBLUP. Default is 0.05.}
+
+\item{nIter}{Total number of iterations for the BGLR Gibbs sampler.
+Default is 10000.}
 
 \item{burnIn}{Number of burn-in iterations. Default is 4000.}
 
 \item{thin}{Thinning interval. Default is 10.}
 
-\item{save_model}{Logical value indicating whether to save the fitted model as an RDS file.
-Default is TRUE.}
+\item{save_model}{Logical value indicating whether to save the fitted
+model as an RDS file. Default is TRUE.}
 
 \item{file_name}{Character string specifying the name of the RDS file.
 Default is "final_env_gxe_bglr_model.rds".}
@@ -95,31 +110,21 @@ Default is "final_env_gxe_bglr_model.rds".}
 \value{
 A list containing the fitted BGLR model, fitted values, residuals,
 environmental incidence matrix, genotype incidence matrix, genomic kernels,
-GxE kernels, eigen decompositions, model information, hyperparameters, and
-training data.
+GxE kernels, eigen decompositions, model information, hyperparameters,
+and training data.
 }
 \description{
-This function trains a final multi-environment genomic prediction model using
-all available phenotypic, environmental, and marker data. It supports GBLUP,
-PCA, nonlinear kernels, kernel PCA, and combinations of kernels using the RKHS
-framework implemented in the BGLR package. The model includes fixed
-environmental effects, main genomic effects, and genotype-by-environment
-interaction effects.
-}
-\examples{
-\dontrun{
-fit <- train_final_multige(
-  SNPs = SNPs,
-  y = y,
-  IDs = IDs,
-  env = env,
-  model = c("laplacian", "bessel"),
-  laplacian_sigma = 0.01,
-  bessel_sigma = 0.1,
-  bessel_order = 1,
-  bessel_degree = 2,
-  file_name = "final_env_laplacian_bessel_gxe.rds"
-)
-}
+This function trains a final multi-environment genomic prediction model
+using all available phenotypic, environmental, and marker data.
 
+The model supports GBLUP and nonlinear genomic kernels, including Gaussian,
+Laplacian, Polynomial, ANOVA, Tanh and Bessel kernels. The model includes
+fixed environmental effects, main genomic effects, and Genotype by
+Environment (GxE) interaction effects.
+
+For each genomic kernel, the observation-level genomic kernel is obtained
+by expanding the genotype kernel according to the genotype incidence
+matrix. The GxE kernel is then calculated as the Hadamard product between
+the observation-level genomic kernel and the environmental relationship
+matrix.
 }

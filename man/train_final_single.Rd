@@ -16,9 +16,10 @@ train_final_single(
   bessel_sigma = 0.1,
   bessel_order = 1,
   bessel_degree = 2,
-  var_threshold = 0.01,
-  nPC = NULL,
-  scale_pca = TRUE,
+  anova_sigma = 0.1,
+  anova_degree = 2,
+  tanh_scale = 0.01,
+  tanh_offset = 1,
   nIter = 10000,
   burnIn = 4000,
   thin = 10,
@@ -27,68 +28,94 @@ train_final_single(
 )
 }
 \arguments{
-\item{SNPs}{A numeric matrix or data frame of SNP genotypes, with individuals in rows and markers in columns.}
+\item{SNPs}{A numeric matrix or data frame of SNP genotypes, with individuals
+in rows and markers in columns.}
 
 \item{y}{A numeric vector of phenotypic values corresponding to the individuals.}
 
-\item{model}{A character vector indicating the model or models to fit. Options are
-"gblup", "pca", "gaussian", "laplacian", "polynomial", "bessel",
-"pca_gaussian", "pca_laplacian", "pca_polynomial", and "pca_bessel".
-If more than one model is provided, they are fitted as combined kernels in the BGLR ETA.}
+\item{model}{A character vector indicating the model or models to fit.
+Options are "gblup", "gaussian", "laplacian", "polynomial", "bessel",
+"anova", and "tanh".
+If more than one model is provided, they are fitted as combined kernels
+in the BGLR ETA.}
 
-\item{gaussian_sigma}{Sigma parameter for the Gaussian kernel. Default is 0.001.}
+\item{gaussian_sigma}{Sigma parameter for the Gaussian/RBF kernel.
+Default is 0.001.}
 
-\item{laplacian_sigma}{Sigma parameter for the Laplacian kernel. Default is 0.01.}
+\item{laplacian_sigma}{Sigma parameter for the Laplacian kernel.
+Default is 0.01.}
 
-\item{polynomial_degree}{Degree parameter for the polynomial kernel. Default is 2.}
+\item{polynomial_degree}{Degree parameter for the polynomial kernel.
+Default is 2.}
 
-\item{polynomial_scale}{Scale parameter for the polynomial kernel. Default is 2.}
+\item{polynomial_scale}{Scale parameter for the polynomial kernel.
+Default is 2.}
 
-\item{polynomial_offset}{Offset parameter for the polynomial kernel. Default is 2.}
+\item{polynomial_offset}{Offset parameter for the polynomial kernel.
+Default is 2.}
 
-\item{bessel_sigma}{Sigma parameter for the Bessel kernel. Default is 0.1.}
+\item{bessel_sigma}{Sigma parameter for the Bessel kernel.
+Default is 0.1.}
 
-\item{bessel_order}{Order parameter for the Bessel kernel. Default is 1.}
+\item{bessel_order}{Order parameter for the Bessel kernel.
+Default is 1.}
 
-\item{bessel_degree}{Degree parameter for the Bessel kernel. Default is 2.}
+\item{bessel_degree}{Degree parameter for the Bessel kernel.
+Default is 2.}
 
-\item{var_threshold}{Minimum proportion of variance explained required for a principal component to be retained in PCA or kernel PCA. Default is 0.01.}
+\item{anova_sigma}{Sigma parameter for the ANOVA kernel.
+Default is 0.1.}
 
-\item{nPC}{Optional number of principal components to retain. If NULL, the number of PCs is selected using var_threshold.}
+\item{anova_degree}{Degree parameter for the ANOVA kernel.
+Default is 2.}
 
-\item{scale_pca}{Logical value indicating whether SNPs should be scaled before PCA. Default is TRUE.}
+\item{tanh_scale}{Scale parameter for the hyperbolic tangent kernel.
+Default is 0.01.}
 
-\item{nIter}{Total number of iterations for the BGLR model. Default is 10000.}
+\item{tanh_offset}{Offset parameter for the hyperbolic tangent kernel.
+Default is 1.}
 
-\item{burnIn}{Number of burn-in iterations for the BGLR model. Default is 4000.}
+\item{nIter}{Total number of iterations for the BGLR model.
+Default is 10000.}
 
-\item{thin}{Thinning interval for the BGLR model. Default is 10.}
+\item{burnIn}{Number of burn-in iterations for the BGLR model.
+Default is 4000.}
 
-\item{save_model}{Logical value indicating whether to save the fitted model as an RDS file. Default is TRUE.}
+\item{thin}{Thinning interval for the BGLR model.
+Default is 10.}
 
-\item{file_name}{Character string specifying the name of the RDS file. Default is "final_bglr_model.rds".}
+\item{save_model}{Logical value indicating whether to save the fitted model
+as an RDS file. Default is TRUE.}
+
+\item{file_name}{Character string specifying the name of the RDS file.
+Default is "final_bglr_model.rds".}
 }
 \value{
 A list containing the fitted BGLR model, fitted values, residuals,
-kernel matrices, model information, selected PCs, hyperparameters, and training data.
+kernel matrices, model information, hyperparameters, and training data.
 }
 \description{
 This function trains a final genomic prediction model using all available
-phenotypic and marker data. It supports GBLUP, PCA, nonlinear kernels,
-kernel PCA, and combinations of kernels using the RKHS framework implemented
+phenotypic and marker data. It supports GBLUP and nonlinear kernels,
+including Gaussian/RBF, Laplacian, Polynomial, Bessel, ANOVA, and
+hyperbolic tangent (tanh) kernels, using the RKHS framework implemented
 in the BGLR package.
+
+If more than one model is provided, they are fitted simultaneously as
+combined kernels in the BGLR ETA.
 }
 \examples{
 \dontrun{
 fit <- train_final_single(
   SNPs = SNPs,
   y = y,
-  model = c("laplacian", "bessel"),
+  model = c("laplacian", "anova", "tanh"),
   laplacian_sigma = 0.01,
-  bessel_sigma = 0.1,
-  bessel_order = 1,
-  bessel_degree = 2,
-  file_name = "final_laplacian_bessel_gxe.rds"
+  anova_sigma = 0.1,
+  anova_degree = 2,
+  tanh_scale = 0.01,
+  tanh_offset = 1,
+  file_name = "final_laplacian_anova_tanh.rds"
 )
 }
 

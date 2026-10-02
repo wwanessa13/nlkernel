@@ -11,7 +11,7 @@ env_g_gaussian(
   env,
   EZ = NULL,
   CV = c("CV1", "CV2", "CV0"),
-  sg = c(0.001, 0.01, 0.05, 0.1),
+  sg = c(1e-04, 0.001, 0.01, 0.1),
   nIter = 10000,
   burnIn = 4000,
   thin = 10,
@@ -53,7 +53,7 @@ the dataset into cross-validation folds. Default is 123.}
 \item{file_name}{Character string for the Excel file name. If NULL, a name is
 automatically generated based on the CV scheme. Default is NULL.}
 
-\item{sigma}{A numeric vector of sigma values for the Gaussian kernel. Default is 0.001, 0.01, 0.05, 0.1.}
+\item{sigma}{A numeric vector of sigma values for the Gaussian kernel. Default is 0.0001, 0.001, 0.01 and 0.1}
 }
 \value{
 A dataframe containing the predictive capacity (Pearson correlation)

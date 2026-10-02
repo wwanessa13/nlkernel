@@ -664,27 +664,13 @@ env_g_combinations <- function(
           }
 
 
-          list_metrics[
-            [length(list_metrics) + 1]
-          ] <- data.frame(
-
-            Model =
-              "Combined_Kernels",
-
-            CV =
-              CV,
-
-            Kernel =
-              kname,
-
-            Fold =
-              fold,
-
-            Environment =
-              a,
-
-            Predictive_Capacity =
-              cor_val
+          list_metrics[[length(list_metrics) + 1]] <- data.frame(
+            Model = "Combined_Kernels",
+            CV = CV,
+            Kernel = kname,
+            Fold = fold,
+            Environment = a,
+            Predictive_Capacity = cor_val
           )
         }
       }

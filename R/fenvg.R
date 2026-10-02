@@ -127,42 +127,42 @@ train_final_multig <- function(SNPs,
   if (length(y) != length(IDs) ||
       length(y) != length(env)) {
 
-    ```
+
     stop(
       "The length of y, IDs, and env must be the same."
     )
-    ```
+
 
   }
 
   if (any(is.na(y))) {
 
-    ```
+
     stop(
       "This function trains the final model using all available data. ",
       "Remove or impute missing values in y before fitting."
     )
-    ```
+
 
   }
 
   if (is.null(rownames(SNPs))) {
 
-    ```
+
     stop(
       "SNPs must have row names corresponding to genotype IDs."
     )
-    ```
+
 
   }
 
   if (!all(unique(IDs) %in% rownames(SNPs))) {
 
-    ```
+
     stop(
       "Some genotype IDs are not present in rownames(SNPs)."
     )
-    ```
+
 
   }
 
@@ -184,12 +184,12 @@ train_final_multig <- function(SNPs,
 
   if (!all(model %in% valid_models)) {
 
-    ```
+
     stop(
       "Invalid model. Use one or more of: ",
       paste(valid_models, collapse = ", ")
     )
-    ```
+
 
   }
 
@@ -212,7 +212,6 @@ train_final_multig <- function(SNPs,
 
   if (is.null(EZ)) {
 
-    ```
     EZ <- model.matrix(
       ~ factor(env) - 1
     )
@@ -221,7 +220,6 @@ train_final_multig <- function(SNPs,
       "Env_",
       levels(factor(env))
     )
-    ```
 
   }
 
@@ -229,11 +227,9 @@ train_final_multig <- function(SNPs,
 
   if (nrow(EZ) != n) {
 
-    ```
     stop(
       "EZ must have the same number of rows as the length of y."
     )
-    ```
 
   }
 
@@ -264,7 +260,6 @@ train_final_multig <- function(SNPs,
 
   make_psd <- function(K) {
 
-    ```
     K <- as.matrix(K)
 
     K <- (K + t(K)) / 2
@@ -291,7 +286,7 @@ train_final_multig <- function(SNPs,
     ) / 2
 
     return(K_psd)
-    ```
+
 
   }
 
@@ -303,7 +298,7 @@ train_final_multig <- function(SNPs,
 
   normalize_kernel <- function(K) {
 
-    ```
+
     K <- as.matrix(K)
 
     K <- make_psd(K)
@@ -321,7 +316,7 @@ train_final_multig <- function(SNPs,
     }
 
     return(K)
-    ```
+
 
   }
 
@@ -333,14 +328,14 @@ train_final_multig <- function(SNPs,
 
   make_genotype_kernel <- function(model_i) {
 
-    ```
+
     # ----------------------------------------------------------
     # GBLUP
     # ----------------------------------------------------------
 
     if (model_i == "gblup") {
 
-      K <- AGHmatrix::Gmatrix(
+      K <- Gmatrix(
         SNPmatrix = SNPs,
         method = "VanRaden",
         ploidy = ploidy,
@@ -521,7 +516,7 @@ train_final_multig <- function(SNPs,
         )
       )
     }
-    ```
+
 
   }
 
@@ -533,7 +528,7 @@ train_final_multig <- function(SNPs,
 
   expand_kernel <- function(K_genotype) {
 
-    ```
+
     K_obs <- GZ %*%
       K_genotype %*%
       t(GZ)
@@ -543,7 +538,7 @@ train_final_multig <- function(SNPs,
     )
 
     return(K_obs)
-    ```
+
 
   }
 
@@ -555,7 +550,7 @@ train_final_multig <- function(SNPs,
 
   decompose_kernel <- function(K_obs) {
 
-    ```
+
     eig <- eigen(
       K_obs,
       symmetric = TRUE
@@ -568,7 +563,7 @@ train_final_multig <- function(SNPs,
       ),
       vectors = eig$vectors
     )
-    ```
+
 
   }
 
@@ -667,12 +662,12 @@ train_final_multig <- function(SNPs,
 
   ETA <- list(
 
-    ```
+
     Environment = list(
       X = EZ,
       model = "FIXED"
     )
-    ```
+
 
   )
 
@@ -683,24 +678,11 @@ train_final_multig <- function(SNPs,
   # ============================================================
 
   for (i in seq_along(model)) {
-
-    ```
-    ETA[
-      [model[i]]
-    ] <- list(
-
-      V = kernel_decompositions[
-        [i]
-      ]$vectors,
-
-      d = kernel_decompositions[
-        [i]
-      ]$values,
-
+    ETA[[model[i]]] <- list(
+      V = kernel_decompositions[[i]]$vectors,
+      d = kernel_decompositions[[i]]$values,
       model = "RKHS"
     )
-    ```
-
   }
 
   # ============================================================
@@ -715,7 +697,7 @@ train_final_multig <- function(SNPs,
 
   fit <- BGLR::BGLR(
 
-    ```
+
     y = y,
 
     ETA = ETA,
@@ -727,7 +709,7 @@ train_final_multig <- function(SNPs,
     thin = thin,
 
     verbose = FALSE
-    ```
+
 
   )
 
@@ -750,7 +732,7 @@ train_final_multig <- function(SNPs,
 
   model_object <- list(
 
-    ```
+
     fit = fit,
 
     yHat = fitted_values,
@@ -837,7 +819,7 @@ train_final_multig <- function(SNPs,
     ),
 
     call = match.call()
-    ```
+
 
   )
 

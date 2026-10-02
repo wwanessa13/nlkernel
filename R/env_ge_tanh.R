@@ -624,22 +624,13 @@ env_ge_tanh <- function(SNPs, y, IDs, env,
         # STORE
         # ------------------------------------------------------
 
-        list_metrics[
-          [length(list_metrics) + 1]
-        ] <- data.frame(
-
+        list_metrics[[length(list_metrics) + 1]] <- data.frame(
           Model = "Tanh_GxE",
-
           CV = CV,
-
           Scale = GDec_i$scale,
-
           Offset = GDec_i$offset,
-
           Fold = fold,
-
           Environment = a,
-
           Predictive_Capacity = cor_val
         )
       }

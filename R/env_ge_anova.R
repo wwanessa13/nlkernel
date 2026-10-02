@@ -622,22 +622,13 @@ env_ge_anova <- function(SNPs, y, IDs, env,
         # STORE
         # ------------------------------------------------------
 
-        list_metrics[
-          [length(list_metrics) + 1]
-        ] <- data.frame(
-
+        list_metrics[[length(list_metrics) + 1]] <- data.frame(
           Model = "ANOVA_GxE",
-
           CV = CV,
-
           Sigma = GDec_i$sigma,
-
           Degree = GDec_i$degree,
-
           Fold = fold,
-
           Environment = a,
-
           Predictive_Capacity = cor_val
         )
       }

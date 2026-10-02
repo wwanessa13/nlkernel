@@ -452,22 +452,13 @@ env_g_tanh <- function(SNPs, y, IDs, env,
         # SAVE METRICS
         # ------------------------------------------------------
 
-        list_metrics[
-          [length(list_metrics) + 1]
-        ] <- data.frame(
-
+        list_metrics[[length(list_metrics) + 1]] <- data.frame(
           Model = "Tanh",
-
           CV = CV,
-
           Scale = GDec_i$scale,
-
           Offset = GDec_i$offset,
-
           Fold = fold,
-
           Environment = a,
-
           Predictive_Capacity = cor_val
         )
       }

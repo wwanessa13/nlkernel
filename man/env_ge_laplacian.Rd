@@ -11,7 +11,7 @@ env_ge_laplacian(
   env,
   EZ = NULL,
   CV = c("CV1", "CV2", "CV0"),
-  sg = c(0.001, 0.01, 0.05, 0.1),
+  sg = c(1e-04, 0.001, 0.01, 0.1),
   nIter = 10000,
   burnIn = 4000,
   thin = 10,
@@ -38,8 +38,7 @@ it is automatically generated from the \code{env} vector.}
 "CV2": Prediction of genotypes observed in only a subset of environments.
 "CV0": Prediction of observed genotypes in completely unobserved environments.}
 
-\item{sg}{A numeric vector of sigma values for the Laplacian kernel.
-Default is \code{c(0.001, 0.01, 0.05, 0.1)}.}
+\item{sg}{A numeric vector of sigma values for the Laplacian kernel. Default is 0.0001, 0.001, 0.01 and 0.1}
 
 \item{nIter}{Total number of iterations for the BGLR Gibbs sampler. Default is 10000.}
 

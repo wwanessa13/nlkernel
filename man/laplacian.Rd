@@ -7,7 +7,7 @@
 laplacian(
   SNPs,
   y,
-  sg = c(0.1, 0.05, 0.01, 0.001),
+  sg = c(1e-04, 0.001, 0.01, 0.1),
   n_folds = 5,
   nIter = 10000,
   burnIn = 4000,
@@ -22,7 +22,7 @@ laplacian(
 
 \item{y}{A numeric vector of phenotypic values corresponding to the individuals.}
 
-\item{sg}{A numeric vector of sigma values for the Laplacian kernel. Default is 0.1, 0.05, 0.01 and 0.001.}
+\item{sg}{A numeric vector of sigma values for the Laplacian kernel. Default is 0.0001, 0.001, 0.01 and 0.1}
 
 \item{n_folds}{Number of folds for cross-validation. Default is 5.}
 

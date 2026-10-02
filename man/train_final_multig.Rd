@@ -2,7 +2,7 @@
 % Please edit documentation in R/fenvg.R
 \name{train_final_multig}
 \alias{train_final_multig}
-\title{#' Train Final Multi Environment Model for Genomic Prediction}
+\title{Train Final Multi Environment Model for Genomic Prediction}
 \usage{
 train_final_multig(
   SNPs,
@@ -16,12 +16,13 @@ train_final_multig(
   polynomial_degree = 2,
   polynomial_scale = 2,
   polynomial_offset = 2,
+  anova_sigma = 0.1,
+  anova_degree = 2,
+  tanh_scale = 0.01,
+  tanh_offset = 1,
   bessel_sigma = 0.1,
   bessel_order = 1,
   bessel_degree = 2,
-  var_threshold = 0.01,
-  nPC = NULL,
-  scale_pca = TRUE,
   ploidy = 2,
   maf = 0.05,
   nIter = 10000,
@@ -32,22 +33,24 @@ train_final_multig(
 )
 }
 \arguments{
-\item{SNPs}{A numeric matrix or data frame of SNP genotypes, with genotypes in rows
-and markers in columns. Row names must correspond to genotype IDs.}
+\item{SNPs}{A numeric matrix or data frame of SNP genotypes, with genotypes
+in rows and markers in columns. Row names must correspond to genotype IDs.}
 
 \item{y}{A numeric vector of phenotypic values.}
 
-\item{IDs}{A character vector indicating the genotype identity for each observation in y.}
+\item{IDs}{A character vector indicating the genotype identity for each
+observation in y.}
 
-\item{env}{A character vector indicating the environment for each observation in y.}
+\item{env}{A character vector indicating the environment for each
+observation in y.}
 
 \item{EZ}{Optional incidence matrix for fixed environmental effects. If NULL,
 it is automatically generated from env.}
 
-\item{model}{A character vector indicating the model or models to fit. Options are
-"gblup", "pca", "gaussian", "laplacian", "polynomial", "bessel",
-"pca_gaussian", "pca_laplacian", "pca_polynomial", and "pca_bessel".
-If more than one model is provided, they are fitted as combined kernels in the BGLR ETA.}
+\item{model}{A character vector indicating the model or models to fit.
+Options are "gblup", "gaussian", "laplacian", "polynomial", "anova",
+"tanh", and "bessel". If more than one model is provided, they are fitted
+as combined kernels in the BGLR ETA.}
 
 \item{gaussian_sigma}{Sigma parameter for the Gaussian kernel. Default is 0.001.}
 
@@ -59,51 +62,50 @@ If more than one model is provided, they are fitted as combined kernels in the B
 
 \item{polynomial_offset}{Offset parameter for the polynomial kernel. Default is 2.}
 
+\item{anova_sigma}{Sigma parameter for the ANOVA kernel. Default is 0.1.}
+
+\item{anova_degree}{Degree parameter for the ANOVA kernel. Default is 2.}
+
+\item{tanh_scale}{Scale parameter for the hyperbolic tangent kernel. Default is 0.01.}
+
+\item{tanh_offset}{Offset parameter for the hyperbolic tangent kernel. Default is 1.}
+
 \item{bessel_sigma}{Sigma parameter for the Bessel kernel. Default is 0.1.}
 
 \item{bessel_order}{Order parameter for the Bessel kernel. Default is 1.}
 
 \item{bessel_degree}{Degree parameter for the Bessel kernel. Default is 2.}
 
-\item{var_threshold}{Minimum proportion of variance explained required for a principal
-component to be retained in PCA or kernel PCA. Default is 0.01.}
+\item{ploidy}{Integer. Ploidy level used in the VanRaden genomic relationship
+matrix. Default is 2.}
 
-\item{nPC}{Optional number of principal components to retain. If NULL, the number
-of PCs is selected using var_threshold.}
+\item{maf}{Numeric. Minor allele frequency threshold used by AGHmatrix for
+GBLUP. Default is 0.05.}
 
-\item{scale_pca}{Logical value indicating whether SNPs should be scaled before PCA.
-Default is TRUE.}
-
-\item{ploidy}{Integer. Ploidy level used in the VanRaden genomic relationship matrix.
-Default is 2.}
-
-\item{maf}{Numeric. Minor allele frequency threshold used by AGHmatrix for GBLUP.
-Default is 0.05.}
-
-\item{nIter}{Total number of iterations for the BGLR Gibbs sampler. Default is 10000.}
+\item{nIter}{Total number of iterations for the BGLR Gibbs sampler.
+Default is 10000.}
 
 \item{burnIn}{Number of burn-in iterations. Default is 4000.}
 
 \item{thin}{Thinning interval. Default is 10.}
 
-\item{save_model}{Logical value indicating whether to save the fitted model as an RDS file.
-Default is TRUE.}
+\item{save_model}{Logical value indicating whether to save the fitted model
+as an RDS file. Default is TRUE.}
 
 \item{file_name}{Character string specifying the name of the RDS file.
 Default is "final_env_bglr_model.rds".}
 }
 \value{
 A list containing the fitted BGLR model, fitted values, residuals,
-environmental incidence matrix, genotype incidence matrix, kernels, eigen decompositions,
-model information, hyperparameters, and training data.
+environmental incidence matrix, genotype incidence matrix, genomic kernels,
+kernel decompositions, model information, hyperparameters, and training data.
 }
 \description{
 This function trains a final multi-environment genomic prediction model using
-all available phenotypic, environmental, and marker data. It supports GBLUP,
-PCA, nonlinear kernels, kernel PCA, and combinations of kernels using the RKHS
-framework implemented in the BGLR package. Environmental effects are fitted as
-fixed effects, and genomic kernels are expanded from the genotype level to the
-observation level.
+all available phenotypic, environmental, and marker data. It supports GBLUP
+and nonlinear genomic kernels using the RKHS framework implemented in the
+BGLR package. Environmental effects are fitted as fixed effects, and genomic
+kernels are expanded from the genotype level to the observation level.
 }
 \examples{
 \dontrun{
@@ -112,12 +114,12 @@ fit <- train_final_multig(
   y = y,
   IDs = IDs,
   env = env,
-  model = c("laplacian", "bessel"),
-  laplacian_sigma = 0.01,
-  bessel_sigma = 0.1,
-  bessel_order = 1,
-  bessel_degree = 2,
-  file_name = "final_env_laplacian_bessel.rds"
+  model = c("anova", "tanh"),
+  anova_sigma = 0.1,
+  anova_degree = 2,
+  tanh_scale = 0.01,
+  tanh_offset = 1,
+  file_name = "final_env_anova_tanh.rds"
 )
 }
 

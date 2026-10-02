@@ -18,7 +18,11 @@ env_g_combinations(
   bessel_sigma = 0.1,
   bessel_order = 1,
   bessel_degree = 2,
+  anova_sigma = 0.1,
+  anova_degree = 2,
   gaussian_sigma = 0.001,
+  tanh_scale = 1,
+  tanh_offset = 1,
   ploidy = 2,
   nIter = 10000,
   burnIn = 4000,
@@ -29,8 +33,8 @@ env_g_combinations(
 )
 }
 \arguments{
-\item{SNPs}{A numeric matrix of SNP genotypes, with genotypes in rows and markers in columns.
-Row names must correspond to genotype IDs.}
+\item{SNPs}{A numeric matrix of SNP genotypes, with genotypes in rows
+and markers in columns. Row names must correspond to genotype IDs.}
 
 \item{y}{A numeric vector of phenotypic values.}
 
@@ -38,54 +42,57 @@ Row names must correspond to genotype IDs.}
 
 \item{env}{A vector of environment labels corresponding to each phenotypic observation.}
 
-\item{EZ}{Optional matrix of fixed environmental effects. If NULL, it is created from env.}
+\item{EZ}{Optional matrix of fixed environmental effects. If NULL, it is
+created from env.}
 
 \item{CV}{A character string specifying the cross-validation scheme:
-"CV1": Prediction of unobserved genotypes in observed environments.
-"CV2": Prediction of genotypes observed in only a subset of environments.
-"CV0": Prediction of observed genotypes in completely unobserved environments.}
+"CV1", "CV2", or "CV0".}
 
-\item{polynomial_degree}{Degree parameter for the polynomialnomial kernel. Default is 2.}
+\item{polynomial_degree}{Degree parameter for the polynomial kernel.}
 
-\item{polynomial_scale}{Scale parameter for the polynomialnomial kernel. Default is 2.}
+\item{polynomial_scale}{Scale parameter for the polynomial kernel.}
 
-\item{polynomial_offset}{Offset parameter for the polynomialnomial kernel. Default is 2.}
+\item{polynomial_offset}{Offset parameter for the polynomial kernel.}
 
-\item{laplacian_sigma}{Sigma parameter for the Laplacian kernel. Default is 0.01.}
+\item{laplacian_sigma}{Sigma parameter for the Laplacian kernel.}
 
-\item{bessel_sigma}{Sigma parameter for the Bessel kernel. Default is 0.1.}
+\item{bessel_sigma}{Sigma parameter for the Bessel kernel.}
 
-\item{bessel_order}{Order parameter for the Bessel kernel. Default is 1.}
+\item{bessel_order}{Order parameter for the Bessel kernel.}
 
-\item{bessel_degree}{Degree parameter for the Bessel kernel. Default is 2.}
+\item{bessel_degree}{Degree parameter for the Bessel kernel.}
 
-\item{gaussian_sigma}{Sigma parameter for the Gaussian/RBF kernel. Default is 0.001.}
+\item{anova_sigma}{Sigma parameter for the ANOVA kernel.}
 
-\item{ploidy}{Ploidy level used in AGHmatrix::Gmatrix. Default is 2.}
+\item{anova_degree}{Degree parameter for the ANOVA kernel.}
 
-\item{nIter}{Total number of iterations for the BGLR model. Default is 10000.}
+\item{gaussian_sigma}{Sigma parameter for the Gaussian/RBF kernel.}
 
-\item{burnIn}{Number of burn-in iterations for the BGLR model. Default is 4000.}
+\item{tanh_scale}{Scale parameter for the hyperbolic tangent kernel.}
 
-\item{thin}{Thinning interval for the BGLR model. Default is 10.}
+\item{tanh_offset}{Offset parameter for the hyperbolic tangent kernel.}
 
-\item{seed}{Integer value used to set the random seed for reproducibility in
-CV1 and CV2. Different seed values generate different random partitions of
-the dataset into cross-validation folds. Default is 123.}
+\item{ploidy}{Ploidy level used in AGHmatrix::Gmatrix.}
 
-\item{save_xlsx}{A logical value indicating whether to save results in an Excel file. Default is TRUE.}
+\item{nIter}{Total number of iterations for the BGLR model.}
 
-\item{file_name}{Character string specifying the name of the Excel file. If NULL, a default name is used.}
+\item{burnIn}{Number of burn-in iterations for the BGLR model.}
+
+\item{thin}{Thinning interval for the MCMC chain.}
+
+\item{seed}{Integer value used to set the random seed for reproducibility.}
+
+\item{save_xlsx}{Logical. If TRUE, saves results to an Excel file.}
+
+\item{file_name}{Character string for the Excel file name.}
 }
 \value{
-A data frame with the mean predictive capacity by kernel combination,
-CV scheme, and environment.
+A data frame with the mean predictive capacity by kernel
+combination, CV scheme, and environment.
 }
 \description{
 This function fits combined kernel models for multi-environment genomic
-prediction using the RKHS framework implemented in the BGLR package. It
-evaluates pairwise combinations of nonlinear kernels and GBLUP. Genomic
-kernels are expanded to the observation level and combined with fixed
-environmental effects. Predictive capacity is evaluated by environment using
-CV1, CV2, or CV0 cross-validation schemes.
+prediction using the RKHS framework implemented in the BGLR package.
+It evaluates pairwise combinations of nonlinear kernels, GBLUP, and
+the hyperbolic tangent (tanh) kernel.
 }
