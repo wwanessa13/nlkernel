@@ -6,7 +6,7 @@
 #'
 #' @param SNPs A numeric matrix of SNP genotypes, with individuals in rows and markers in columns.
 #' @param y A numeric vector of phenotypic values corresponding to the individuals.
-#' @param sg A numeric vector of sigma values for the Laplacian kernel. Default is 0.1, 0.05, 0.01 and 0.001.
+#' @param sg A numeric vector of sigma values for the Laplacian kernel. Default is 0.0001, 0.001, 0.01 and 0.1
 #' @param n_folds Number of folds for cross-validation. Default is 5.
 #' @param nIter Total number of iterations for the BGLR model. Default is 10000.
 #' @param burnIn Number of burn-in iterations for the BGLR model. Default is 4000.
@@ -20,7 +20,7 @@
 #' @export
 
 laplacian <- function(SNPs, y,
-                     sg = c(0.1, 0.05, 0.01, 0.001),
+                     sg = c(0.0001, 0.001, 0.01, 0.1),
                      n_folds = 5,
                      nIter = 10000,
                      burnIn = 4000,

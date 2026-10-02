@@ -67,11 +67,6 @@ To evaluate model performance, K-fold cross-validation is used.
 - bessel
 - polynomial
 - combinations
-- pca
-- pca_laplacian
-- pca_gaussian
-- pca_bessel
-- pca_polynomial
 
 ### Example with settings default
 
@@ -111,11 +106,6 @@ effects, following a main-effects genomic framework.
 - env_g_bessel
 - env_g_polynomial
 - env_g_combinations
-- env_g_pca
-- env_g_pca_laplacian
-- env_g_pca_gaussian
-- env_g_pca_bessel
-- env_g_pca_polynomial
 
 #### Example: Default settings
 
@@ -148,11 +138,6 @@ matrix and extends it to the G×E interaction matrix.
 - env_ge_bessel
 - env_ge_polynomial
 - env_ge_combinations
-- env_ge_pca
-- env_ge_pca_laplacian
-- env_ge_pca_gaussian
-- env_ge_pca_bessel
-- env_ge_pca_polynomial
 
 #### Example: Default settings
 
@@ -208,15 +193,6 @@ results <- train_final_single(
 results <- train_final_single(
   SNPs = SNPs,
   y = y,
-  model = "pca_laplacian",
-  laplacian_sigma = 0.01,
-  var_threshold = 0.01,
-  file_name = "final_pca_laplacian.rds"
-)
-
-results <- train_final_single(
-  SNPs = SNPs,
-  y = y,
   model = c("laplacian", "bessel"),
   laplacian_sigma = 0.01,
   bessel_sigma = 0.1,
@@ -244,18 +220,6 @@ results <- train_final_multig(
   y,
   IDs,
   env,
-  model = "pca_bessel",
-  bessel_sigma = 0.1,
-  bessel_order = 0,
-  bessel_degree = 2,
-  file_name = "final_env_bessel.rds"
-)
-
-results <- train_final_multig(
-  SNPs,
-  y,
-  IDs,
-  env,
   model = c("polynomial", "gaussian"),
   gaussian_sigma = 0.01,
   polynomial_degree = 3,
@@ -275,17 +239,6 @@ results <- train_final_multige(
   env = env,
   model = "gblup",
   file_name = "final_env_gblup_gxe.rds"
-)
-
-results <- train_final_multige(
-  SNPs = SNPs,
-  y = y,
-  IDs = IDs,
-  env = env,
-  model = "pca_laplacian",
-  laplacian_sigma = 0.01,
-  var_threshold = 0.01,
-  file_name = "final_env_pca_laplacian_gxe.rds"
 )
 
 results <- train_final_multige(
@@ -343,16 +296,6 @@ genomic_matrix <- transform_snps(
 
 G_laplacian <- genomic_matrix$K$laplacian
 G_bessel <- genomic_matrix$K$bessel
-```
-
-``` r
-genomic_pca <- transform_snps(
-  SNPs = SNPs,
-  model = "pca",
-  nPC = 20
-)
-
-M <- genomic_pca$transformed$pca
 ```
 
 Now, the genomic matrix is ready to be loaded into the BGLR framework or

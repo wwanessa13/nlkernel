@@ -1,65 +1,99 @@
 #' Combined Kernel Models for Multi-Environment Genomic Prediction
 #'
 #' This function fits combined kernel models for multi-environment genomic
-#' prediction using the RKHS framework implemented in the BGLR package. It
-#' evaluates pairwise combinations of nonlinear kernels and GBLUP. Genomic
-#' kernels are expanded to the observation level and combined with fixed
-#' environmental effects. Predictive capacity is evaluated by environment using
-#' CV1, CV2, or CV0 cross-validation schemes.
+#' prediction using the RKHS framework implemented in the BGLR package.
+#' It evaluates pairwise combinations of nonlinear kernels, GBLUP, and
+#' the hyperbolic tangent (tanh) kernel.
 #'
-#' @param SNPs A numeric matrix of SNP genotypes, with genotypes in rows and markers in columns.
-#' Row names must correspond to genotype IDs.
+#' @param SNPs A numeric matrix of SNP genotypes, with genotypes in rows
+#'   and markers in columns. Row names must correspond to genotype IDs.
 #' @param y A numeric vector of phenotypic values.
 #' @param IDs A vector of genotype IDs corresponding to each phenotypic observation.
 #' @param env A vector of environment labels corresponding to each phenotypic observation.
-#' @param EZ Optional matrix of fixed environmental effects. If NULL, it is created from env.
+#' @param EZ Optional matrix of fixed environmental effects. If NULL, it is
+#'   created from env.
 #' @param CV A character string specifying the cross-validation scheme:
-#' "CV1": Prediction of unobserved genotypes in observed environments.
-#' "CV2": Prediction of genotypes observed in only a subset of environments.
-#' "CV0": Prediction of observed genotypes in completely unobserved environments.
-#' @param polynomial_degree Degree parameter for the polynomialnomial kernel. Default is 2.
-#' @param polynomial_scale Scale parameter for the polynomialnomial kernel. Default is 2.
-#' @param polynomial_offset Offset parameter for the polynomialnomial kernel. Default is 2.
-#' @param laplacian_sigma Sigma parameter for the Laplacian kernel. Default is 0.01.
-#' @param bessel_sigma Sigma parameter for the Bessel kernel. Default is 0.1.
-#' @param bessel_order Order parameter for the Bessel kernel. Default is 1.
-#' @param bessel_degree Degree parameter for the Bessel kernel. Default is 2.
-#' @param gaussian_sigma Sigma parameter for the Gaussian/RBF kernel. Default is 0.001.
-#' @param ploidy Ploidy level used in AGHmatrix::Gmatrix. Default is 2.
-#' @param nIter Total number of iterations for the BGLR model. Default is 10000.
-#' @param burnIn Number of burn-in iterations for the BGLR model. Default is 4000.
-#' @param thin Thinning interval for the BGLR model. Default is 10.
-#' @param seed Integer value used to set the random seed for reproducibility in
-#'   CV1 and CV2. Different seed values generate different random partitions of
-#'   the dataset into cross-validation folds. Default is 123.
-#' @param save_xlsx A logical value indicating whether to save results in an Excel file. Default is TRUE.
-#' @param file_name Character string specifying the name of the Excel file. If NULL, a default name is used.
+#'   "CV1", "CV2", or "CV0".
+#' @param polynomial_degree Degree parameter for the polynomial kernel.
+#' @param polynomial_scale Scale parameter for the polynomial kernel.
+#' @param polynomial_offset Offset parameter for the polynomial kernel.
+#' @param laplacian_sigma Sigma parameter for the Laplacian kernel.
+#' @param bessel_sigma Sigma parameter for the Bessel kernel.
+#' @param bessel_order Order parameter for the Bessel kernel.
+#' @param bessel_degree Degree parameter for the Bessel kernel.
+#' @param anova_sigma Sigma parameter for the ANOVA kernel.
+#' @param anova_degree Degree parameter for the ANOVA kernel.
+#' @param gaussian_sigma Sigma parameter for the Gaussian/RBF kernel.
+#' @param tanh_scale Scale parameter for the hyperbolic tangent kernel.
+#' @param tanh_offset Offset parameter for the hyperbolic tangent kernel.
+#' @param ploidy Ploidy level used in AGHmatrix::Gmatrix.
+#' @param nIter Total number of iterations for the BGLR model.
+#' @param burnIn Number of burn-in iterations for the BGLR model.
+#' @param thin Thinning interval for the MCMC chain.
+#' @param seed Integer value used to set the random seed for reproducibility.
+#' @param save_xlsx Logical. If TRUE, saves results to an Excel file.
+#' @param file_name Character string for the Excel file name.
 #'
-#' @return A data frame with the mean predictive capacity by kernel combination,
-#' CV scheme, and environment.
+#' @return A data frame with the mean predictive capacity by kernel
+#'   combination, CV scheme, and environment.
 #'
 #' @export
 
-env_g_combinations <- function(SNPs, y, IDs, env,
-                               EZ = NULL,
-                               CV = c("CV1", "CV2", "CV0"),
-                               polynomial_degree = 2,
-                               polynomial_scale = 2,
-                               polynomial_offset = 2,
-                               laplacian_sigma = 0.01,
-                               bessel_sigma = 0.1,
-                               bessel_order = 1,
-                               bessel_degree = 2,
-                               gaussian_sigma = 0.001,
-                               ploidy = 2,
-                               nIter = 10000,
-                               burnIn = 4000,
-                               thin = 10,
-                               seed = 123,
-                               save_xlsx = TRUE,
-                               file_name = NULL) {
+env_g_combinations <- function(
+    SNPs, y, IDs, env,
+    EZ = NULL,
+    CV = c("CV1", "CV2", "CV0"),
+
+    polynomial_degree = 2,
+    polynomial_scale = 2,
+    polynomial_offset = 2,
+
+    laplacian_sigma = 0.01,
+
+    bessel_sigma = 0.1,
+    bessel_order = 1,
+    bessel_degree = 2,
+
+    anova_sigma = 0.1,
+    anova_degree = 2,
+
+    gaussian_sigma = 0.001,
+
+    tanh_scale = 1,
+    tanh_offset = 1,
+
+    ploidy = 2,
+
+    nIter = 10000,
+    burnIn = 4000,
+    thin = 10,
+
+    seed = 123,
+
+    save_xlsx = TRUE,
+    file_name = NULL) {
+
+
+  # ============================================================
+  # PACOTES
+  # ============================================================
+
+  library(kernlab)
+  library(BGLR)
+  library(AGHmatrix)
+  library(writexl)
+
+
+  # ============================================================
+  # CROSS-VALIDATION
+  # ============================================================
 
   CV <- match.arg(CV)
+
+
+  # ============================================================
+  # DADOS
+  # ============================================================
 
   SNPs <- as.matrix(SNPs)
   storage.mode(SNPs) <- "numeric"
@@ -68,32 +102,74 @@ env_g_combinations <- function(SNPs, y, IDs, env,
   IDs <- as.character(IDs)
   env <- as.character(env)
 
-  if (length(y) != length(IDs) || length(y) != length(env)) {
-    stop("The length of y, IDs, and env must be the same.")
+
+  # ============================================================
+  # CHECAGEM DOS DADOS
+  # ============================================================
+
+  if (
+    length(y) != length(IDs) ||
+    length(y) != length(env)
+  ) {
+
+    stop(
+      "The length of y, IDs, and env must be the same."
+    )
   }
+
 
   if (is.null(rownames(SNPs))) {
-    stop("SNPs must have row names corresponding to genotype IDs.")
+
+    stop(
+      "SNPs must have row names corresponding to genotype IDs."
+    )
   }
+
 
   if (!all(unique(IDs) %in% rownames(SNPs))) {
-    stop("Some genotype IDs are not present in rownames(SNPs).")
+
+    stop(
+      "Some genotype IDs are not present in rownames(SNPs)."
+    )
   }
 
+
   n <- length(y)
+
   uIDs <- unique(IDs)
   uenv <- unique(env)
 
+
+  # ============================================================
+  # EFEITO FIXO DE AMBIENTE
+  # ============================================================
+
   if (is.null(EZ)) {
-    EZ <- model.matrix(~ factor(env) - 1)
-    colnames(EZ) <- paste0("Env_", uenv)
+
+    EZ <- model.matrix(
+      ~ factor(env) - 1
+    )
+
+    colnames(EZ) <- paste0(
+      "Env_",
+      uenv
+    )
   }
 
   EZ <- as.matrix(EZ)
 
+
   if (nrow(EZ) != n) {
-    stop("EZ must have the same number of rows as the length of y.")
+
+    stop(
+      "EZ must have the same number of rows as the length of y."
+    )
   }
+
+
+  # ============================================================
+  # DATAFRAME AUXILIAR
+  # ============================================================
 
   Y <- data.frame(
     ID = IDs,
@@ -101,23 +177,48 @@ env_g_combinations <- function(SNPs, y, IDs, env,
     y = y
   )
 
+
+  # ============================================================
+  # CV1
+  # ============================================================
+
   if (CV == "CV1") {
+
     set.seed(seed)
+
     n_folds <- 5
-    fold_id <- rep(1:n_folds, length.out = length(uIDs))
+
+    fold_id <- rep(
+      1:n_folds,
+      length.out = length(uIDs)
+    )
+
     fold_id <- sample(fold_id)
 
     names(fold_id) <- uIDs
+
     Y$Fold <- fold_id[Y$ID]
   }
 
+
+  # ============================================================
+  # CV2
+  # ============================================================
+
   if (CV == "CV2") {
+
     set.seed(seed)
+
     n_folds <- 5
+
     Y$Fold <- NA
 
     for (id in uIDs) {
-      idx <- which(Y$ID == id)
+
+      idx <- which(
+        Y$ID == id
+      )
+
       ni <- length(idx)
 
       Y$Fold[idx] <- sample(
@@ -128,58 +229,167 @@ env_g_combinations <- function(SNPs, y, IDs, env,
     }
   }
 
+
+  # ============================================================
+  # CV0
+  # ============================================================
+
   if (CV == "CV0") {
 
+    set.seed(seed)
+
     n_folds_env <- length(uenv)
-    fold_env <- sample(1:n_folds_env, size = n_folds_env)
+
+    fold_env <- sample(
+      1:n_folds_env,
+      size = n_folds_env
+    )
 
     names(fold_env) <- uenv
+
     Y$Fold <- fold_env[Y$Env]
   }
 
-  folds_run <- sort(unique(Y$Fold))
 
-  IDs_factor <- factor(IDs, levels = rownames(SNPs))
-  GZ <- model.matrix(~ IDs_factor - 1)
+  folds_run <- sort(
+    unique(Y$Fold)
+  )
+
+
+  # ============================================================
+  # MATRIZ DE INCIDÊNCIA GENOTÍPICA
+  # ============================================================
+
+  IDs_factor <- factor(
+    IDs,
+    levels = rownames(SNPs)
+  )
+
+  GZ <- model.matrix(
+    ~ IDs_factor - 1
+  )
+
+
+  # ============================================================
+  # KERNELS
+  # ============================================================
 
   kernels <- list(
+
+    # ----------------------------------------------------------
+    # POLYNOMIAL
+    # ----------------------------------------------------------
+
     polynomial = function(SNPs) {
-      kernlab::kernelMatrix(
-        kernlab::polydot(
+
+      kernelMatrix(
+
+        polydot(
           degree = polynomial_degree,
           scale = polynomial_scale,
           offset = polynomial_offset
         ),
+
         SNPs
       )
     },
+
+
+    # ----------------------------------------------------------
+    # LAPLACIAN
+    # ----------------------------------------------------------
 
     laplacian = function(SNPs) {
-      kernlab::kernelMatrix(
-        kernlab::laplacedot(sigma = laplacian_sigma),
+
+      kernelMatrix(
+
+        laplacedot(
+          sigma = laplacian_sigma
+        ),
+
         SNPs
       )
     },
 
+
+    # ----------------------------------------------------------
+    # BESSEL
+    # ----------------------------------------------------------
+
     bessel = function(SNPs) {
-      kernlab::kernelMatrix(
-        kernlab::besseldot(
+
+      kernelMatrix(
+
+        besseldot(
           sigma = bessel_sigma,
           order = bessel_order,
           degree = bessel_degree
         ),
+
         SNPs
       )
     },
+
+
+    # ----------------------------------------------------------
+    # ANOVA
+    # ----------------------------------------------------------
+
+    anova = function(SNPs) {
+
+      kernelMatrix(
+
+        anovadot(
+          sigma = anova_sigma,
+          degree = anova_degree
+        ),
+
+        SNPs
+      )
+    },
+
+
+    # ----------------------------------------------------------
+    # GAUSSIAN
+    # ----------------------------------------------------------
 
     gaussian = function(SNPs) {
-      kernlab::kernelMatrix(
-        kernlab::rbfdot(sigma = gaussian_sigma),
+
+      kernelMatrix(
+
+        rbfdot(
+          sigma = gaussian_sigma
+        ),
+
         SNPs
       )
     },
 
+
+    # ----------------------------------------------------------
+    # TANH
+    # ----------------------------------------------------------
+
+    tanh = function(SNPs) {
+
+      kernelMatrix(
+
+        tanhdot(
+          scale = tanh_scale,
+          offset = tanh_offset
+        ),
+
+        SNPs
+      )
+    },
+
+
+    # ----------------------------------------------------------
+    # GBLUP
+    # ----------------------------------------------------------
+
     GBLUP = function(SNPs) {
+
       AGHmatrix::Gmatrix(
         SNPs,
         method = "VanRaden",
@@ -189,145 +399,390 @@ env_g_combinations <- function(SNPs, y, IDs, env,
     }
   )
 
+
+  # ============================================================
+  # COMBINAÇÕES DOS KERNELS
+  # ============================================================
+
   comb_list <- list(
+
     c("polynomial", "gaussian"),
     c("polynomial", "bessel"),
     c("polynomial", "laplacian"),
+    c("polynomial", "anova"),
+    c("polynomial", "tanh"),
+    c("polynomial", "GBLUP"),
+
     c("gaussian", "bessel"),
     c("gaussian", "laplacian"),
-    c("bessel", "laplacian"),
-    c("polynomial", "GBLUP"),
+    c("gaussian", "anova"),
+    c("gaussian", "tanh"),
     c("gaussian", "GBLUP"),
+
+    c("bessel", "laplacian"),
+    c("bessel", "anova"),
+    c("bessel", "tanh"),
     c("bessel", "GBLUP"),
-    c("laplacian", "GBLUP")
+
+    c("laplacian", "anova"),
+    c("laplacian", "tanh"),
+    c("laplacian", "GBLUP"),
+
+    c("anova", "tanh"),
+    c("anova", "GBLUP"),
+
+    c("tanh", "GBLUP")
   )
 
-  # -----------------------------
-  # Pré-computar kernels expandidos e decompostos
-  # -----------------------------
+
+  # ============================================================
+  # KERNELS EXPANDIDOS E DECOMPOSTOS
+  # ============================================================
 
   KDec_by_kernel <- list()
 
+
   for (kname in names(kernels)) {
 
-    cat("Computing kernel:", kname, "\n")
+    cat(
+      "\nComputing kernel:",
+      kname,
+      "\n"
+    )
+
 
     Gn <- kernels[[kname]](SNPs)
+
     Gn <- as.matrix(Gn)
+
 
     rownames(Gn) <- rownames(SNPs)
     colnames(Gn) <- rownames(SNPs)
 
-    # Expandir kernel para o nível das observações multiambiente
-    G <- GZ %*% Gn %*% t(GZ)
 
-    GDec <- eigen(G, symmetric = TRUE)
+    # ----------------------------------------------------------
+    # EXPANDIR PARA NÍVEL DAS OBSERVAÇÕES
+    # ----------------------------------------------------------
+
+    G <- GZ %*%
+      Gn %*%
+      t(GZ)
+
+
+    # ----------------------------------------------------------
+    # DECOMPOSIÇÃO ESPECTRAL
+    # ----------------------------------------------------------
+
+    GDec <- eigen(
+      G,
+      symmetric = TRUE
+    )
+
 
     KDec_by_kernel[[kname]] <- list(
-      values = pmax(GDec$values, 0),
+
+      values = pmax(
+        GDec$values,
+        0
+      ),
+
       vectors = GDec$vectors
     )
   }
 
-  # -----------------------------
-  # Rodar combinações
-  # -----------------------------
+
+  # ============================================================
+  # RESULTADOS
+  # ============================================================
 
   list_metrics <- list()
 
+
+  # ============================================================
+  # LOOP SOBRE AS COMBINAÇÕES
+  # ============================================================
+
   for (comb in comb_list) {
 
-    kname <- paste(comb, collapse = "_")
+    kname <- paste(
+      comb,
+      collapse = "_"
+    )
 
-    cat("\nRunning combination:", kname, "\n")
 
-    ETA_kernels <- lapply(comb, function(k) {
-      list(
-        V = KDec_by_kernel[[k]]$vectors,
-        d = KDec_by_kernel[[k]]$values,
-        model = "RKHS"
-      )
-    })
+    cat(
+      "\n============================================\n"
+    )
+
+    cat(
+      "Running combination:",
+      kname,
+      "\n"
+    )
+
+    cat(
+      "============================================\n"
+    )
+
+
+    # ==========================================================
+    # ETA DOS KERNELS
+    # ==========================================================
+
+    ETA_kernels <- lapply(
+      comb,
+      function(k) {
+
+        list(
+
+          V = KDec_by_kernel[[k]]$vectors,
+
+          d = KDec_by_kernel[[k]]$values,
+
+          model = "RKHS"
+        )
+      }
+    )
+
+
+    # ==========================================================
+    # EFEITO AMBIENTAL + KERNELS
+    # ==========================================================
 
     ETA_i <- c(
-      list(list(X = EZ, model = "FIXED")),
+
+      list(
+        list(
+          X = EZ,
+          model = "FIXED"
+        )
+      ),
+
       ETA_kernels
     )
 
+
+    # ==========================================================
+    # CROSS-VALIDATION
+    # ==========================================================
+
     for (fold in folds_run) {
 
-      cat("  Processing fold", fold, "\n")
+      cat(
+        "  Processing fold",
+        fold,
+        "\n"
+      )
 
-      testing <- which(Y$Fold == fold)
+
+      # --------------------------------------------------------
+      # TESTE
+      # --------------------------------------------------------
+
+      testing <- which(
+        Y$Fold == fold
+      )
+
+
+      # --------------------------------------------------------
+      # OCULTAR FENÓTIPOS
+      # --------------------------------------------------------
 
       yNA <- y
+
       yNA[testing] <- NA
 
+
+      # --------------------------------------------------------
+      # BGLR
+      # --------------------------------------------------------
+
       fm <- BGLR::BGLR(
+
         y = yNA,
+
         ETA = ETA_i,
+
         nIter = nIter,
+
         burnIn = burnIn,
+
         thin = thin,
+
         verbose = FALSE
       )
 
+
+      # --------------------------------------------------------
+      # PREDIÇÕES
+      # --------------------------------------------------------
+
       yHat <- fm$yHat
+
+
+      # ========================================================
+      # CAPACIDADE PREDITIVA POR AMBIENTE
+      # ========================================================
 
       for (a in uenv) {
 
-        idx_env <- which(env == a)
-        join <- intersect(idx_env, testing)
+        idx_env <- which(
+          env == a
+        )
+
+        join <- intersect(
+          idx_env,
+          testing
+        )
+
 
         if (length(join) > 1) {
 
-          if (sd(yHat[join], na.rm = TRUE) > 0 &&
-              sd(y[join], na.rm = TRUE) > 0) {
+          if (
+            sd(
+              yHat[join],
+              na.rm = TRUE
+            ) > 0 &&
+            sd(
+              y[join],
+              na.rm = TRUE
+            ) > 0
+          ) {
 
             cor_val <- cor(
+
               yHat[join],
+
               y[join],
+
               use = "complete.obs"
             )
 
           } else {
+
             cor_val <- NA
           }
 
-          list_metrics[[length(list_metrics) + 1]] <-
-            data.frame(
-              Model = "Combined_Kernels",
-              CV = CV,
-              Kernel = kname,
-              Fold = fold,
-              Environment = a,
-              Predictive_Capacity = cor_val
-            )
+
+          list_metrics[
+            [length(list_metrics) + 1]
+          ] <- data.frame(
+
+            Model =
+              "Combined_Kernels",
+
+            CV =
+              CV,
+
+            Kernel =
+              kname,
+
+            Fold =
+              fold,
+
+            Environment =
+              a,
+
+            Predictive_Capacity =
+              cor_val
+          )
         }
       }
     }
   }
 
-  df_raw <- do.call(rbind, list_metrics)
 
-  df_metrics <- aggregate(
-    Predictive_Capacity ~ Model + CV + Kernel + Environment,
-    data = df_raw,
-    FUN = function(x) mean(x, na.rm = TRUE)
+  # ============================================================
+  # COMBINAR RESULTADOS
+  # ============================================================
+
+  df_raw <- do.call(
+    rbind,
+    list_metrics
   )
 
-  names(df_metrics)[names(df_metrics) == "Predictive_Capacity"] <- "pred"
 
-  df_metrics <- df_metrics[order(-df_metrics$pred), ]
+  # ============================================================
+  # MÉDIA ENTRE FOLDS
+  # ============================================================
+
+  df_metrics <- aggregate(
+
+    Predictive_Capacity ~
+
+      Model +
+      CV +
+      Kernel +
+      Environment,
+
+    data = df_raw,
+
+    FUN = function(x) {
+
+      if (all(is.na(x))) {
+
+        return(NA_real_)
+
+      } else {
+
+        return(
+          mean(
+            x,
+            na.rm = TRUE
+          )
+        )
+      }
+    }
+  )
+
+
+  # ============================================================
+  # RENOMEAR
+  # ============================================================
+
+  names(df_metrics)[
+    names(df_metrics) ==
+      "Predictive_Capacity"
+  ] <- "pred"
+
+
+  # ============================================================
+  # ORDENAR
+  # ============================================================
+
+  df_metrics <- df_metrics[
+    order(
+      -df_metrics$pred
+    ),
+  ]
+
+
+  # ============================================================
+  # SALVAR
+  # ============================================================
 
   if (save_xlsx) {
 
     if (is.null(file_name)) {
-      file_name <- paste0("Combined_Kernels_", CV, ".xlsx")
+
+      file_name <- paste0(
+        "Combined_Kernels_",
+        CV,
+        ".xlsx"
+      )
     }
 
-    writexl::write_xlsx(df_metrics, file_name)
+
+    writexl::write_xlsx(
+      df_metrics,
+      file_name
+    )
   }
+
+
+  # ============================================================
+  # RETORNAR
+  # ============================================================
 
   return(df_metrics)
 }

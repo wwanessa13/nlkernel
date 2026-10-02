@@ -17,8 +17,7 @@
 #' "CV1": Prediction of unobserved genotypes in observed environments.
 #' "CV2": Prediction of genotypes observed in only a subset of environments.
 #' "CV0": Prediction of observed genotypes in completely unobserved environments.
-#' @param sg A numeric vector of sigma values for the Gaussian kernel.
-#'   Default is \code{c(0.001, 0.01, 0.05, 0.1)}.
+#' @param sg A numeric vector of sigma values for the Gaussian kernel. Default is 0.0001, 0.001, 0.01 and 0.1
 #' @param nIter Total number of iterations for the BGLR Gibbs sampler. Default is 10000.
 #' @param burnIn Number of burn-in iterations to be discarded. Default is 4000.
 #' @param thin Thinning interval for the MCMC chain. Default is 10.
@@ -54,7 +53,7 @@
 env_ge_gaussian <- function(SNPs, y, IDs, env,
                              EZ = NULL,
                              CV = c("CV1", "CV2", "CV0"),
-                             sg = c(0.001, 0.01, 0.05, 0.1),
+                             sg = c(0.0001, 0.001, 0.01, 0.1),
                              nIter = 10000,
                              burnIn = 4000,
                              thin = 10,

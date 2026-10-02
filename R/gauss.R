@@ -2,7 +2,7 @@
 #' @description This function implements the Gaussian kernel for genomic prediction using the BGLR package. It performs cross-validation to evaluate the predictive accuracy of the model.
 #' @param SNPs A matrix of SNP genotypes (individuals x markers).
 #' @param y A numeric vector of phenotypic values corresponding to the individuals.
-#' @param sg A numeric vector of sigma values for the Gaussian kernel. Default is 0.1, 0.05, 0.01 and 0.001.
+#' @param sg A numeric vector of sigma values for the Gaussian kernel. Default is 0.0001, 0.001, 0.01 and 0.1.
 #' @param n_folds The number of folds for cross-validation. Default is 5.
 #' @param nIter The total number of iterations for the BGLR model. Default is 10000.
 #' @param burnIn The number of burn-in iterations for the BGLR model. Default is 4000.
@@ -16,7 +16,7 @@
 #' @export
 
 gaussian <- function(SNPs, y,
-                     sg = c(0.1, 0.05, 0.01, 0.001),
+                     sg = c(0.0001, 0.001, 0.01, 0.1),
                      n_folds = 5,
                      nIter = 10000,
                      burnIn = 4000,
