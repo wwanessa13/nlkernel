@@ -10,16 +10,14 @@
 This package provides a unified framework for genomic prediction using
 kernel-based methods within the RKHS paradigm implemented in BGLR. It
 includes functions for fitting and evaluating Laplacian, Gaussian,
-Bessel and Polynomial kernels. It also allows combining multiple kernels
-in a single model. Still, these kernels can be used in Principal
-Component Analysis (KPCA), with automatic selection of principal
-components based on explained variance thresholds. Finally, it allows
-combining multiple kernels in a single model.
+Bessel, Polynomial, Anova and Hiperbolic Tangent kernels. It also allows
+combining multiple kernels in a single model. Finally, it allows
+combining two kernels in a single model.
 
 The package supports flexible hyperparameter tuning to all kernels.
 
-For comparison purposes, it is possible to implement GBLUP and PCA in
-the same prediction structure.
+For comparison purposes, it is possible to implement GBLUP in the same
+prediction structure.
 
 The models are available for both single-environment and
 multi-environment trials. For the latter, frameworks are available
@@ -66,6 +64,8 @@ To evaluate model performance, K-fold cross-validation is used.
 - gaussian
 - bessel
 - polynomial
+- anova
+- tanh
 - combinations
 
 ### Example with settings default
@@ -105,6 +105,8 @@ effects, following a main-effects genomic framework.
 - env_g_gaussian
 - env_g_bessel
 - env_g_polynomial
+- env_g_anova
+- env_g_tanh
 - env_g_combinations
 
 #### Example: Default settings
@@ -137,6 +139,8 @@ matrix and extends it to the G×E interaction matrix.
 - env_ge_gaussian
 - env_ge_bessel
 - env_ge_polynomial
+- env_ge_anova
+- env_ge_tanh
 - env_ge_combinations
 
 #### Example: Default settings
